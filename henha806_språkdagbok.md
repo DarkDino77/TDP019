@@ -1,0 +1,4 @@
+# Språkdagbok
+- 13/2 Vi satt tillsammans och forskade kring vilket språk vi skulle skapa och kom fram till en imperativ klon som är en hybrid mellan c++ och python. Vi skrev klart språkspecifikation v1.
+- 21/2 Inför språkspecifikation v2 fyllde vi ut och tog bort vissa saker. Vi bytte exempelvis ut for-loopar till while-loopar. Det är lite svårt att skriva en språkspec utan att riktigt veta hur språket ska implementeras så det känns lite som en gissningslek i såhär tidigt skede.
+- 27/2 Efter duggan i tdp007 på morgonen har vi suttit och skrivit BNFen då vi missuppfattade grammatik-delen av språkspecifikationen inför V2. Vi lade även till lite tankar kring scope-hantering med hänsyn till frames i språkspecen. Detta har tagit en stor del av förmiddagen och på eftermiddagen har vi suttit och skrivit ett utkast till implemenationsplanen.

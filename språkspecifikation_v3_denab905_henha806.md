@@ -81,7 +81,7 @@ auto b = 15; # Även denna kommer att bli en int.
 Vi kommer att ha ett globalt scope, och ett scope som begränsas av klammer-paranteser. Alla begränsade scope har tillgång till data i scope ovanför och om dem har flaggan `mod` kan även datan manipuleras. Detta är inte sant när man går åt andra hållet.
 Exempel på scope:
 ``` python
-int mod a = 20; # Globalt scope.
+mod int a = 20; # Globalt scope.
 
 {
     int b = 30; # Lokalt scope.
@@ -91,6 +91,15 @@ int mod a = 20; # Globalt scope.
     }
 }
 ```
+Vårat scope kommer alltså att vara statiskt.
+
+## Frames
+Varje scope kommer att representeras med frames, som är dicts som innehåller variabler och funktioner.
+Frames lagras i en stack där framen högst upp i stacken representerar det nuvarande scopet.
+När ett nytt block öppnas skapas en ny frame och läggs högst up i stacken och de variabler och funktioner som defineras läggs till i denna.
+När ett block tar slut, tas framen bort från stacken.
+
+För att få tillgång till rätt variabler vid ett variabel- eller funktionsanrop kommer först det nuvarande scopet sökas igenom, därfeter traverserar koden upp i hirearkin för att söka vidare där. Skulle variabeln inte hittas ska ett felmeddelande presenteras.
 
 ## Generellt exempel
 ``` python

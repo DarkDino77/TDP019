@@ -1,3 +1,18 @@
+Språkspecifikation V3 - denab905 henha806
+- Liknande Python i syntax, men med tillägg av explicita blockmarkörer ({}) och slut på statements (;).
+- Strikt typat med typhärledning.
+- Alla variabler är konstanter om inte flaggan `mod` används innan variabelnamn, ex `int mod a = 10`.
+
+-- Frames --
+Varje scope kommer att representeras med frames, som är dicts som innehåller variabler och funktioner.
+Frames lagras i en stack där framen högst upp i stacken representerar det nuvarande scopet.
+När ett nytt block öppnas skapas en ny frame och läggs högst up i stacken och de variabler och funktioner som defineras läggs till i denna.
+När ett block tar slut, tas framen bort från stacken.
+
+För att få tillgång till rätt variabler vid ett variabel- eller funktionsanrop kommer först det nuvarande scopet sökas igenom,
+därfeter traverserar koden upp i hirearkin för att söka vidare där. Skulle variabeln inte hittas ska ett felmeddelande presenteras.
+
+-- BNF --
 <program> ::= <scope> 
 
 <scope> ::= <operation> | <operation> <scope> | { <scope> }
