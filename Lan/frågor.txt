@@ -1,0 +1,2 @@
+Finns det något sätt man ska skriva komentarer för att generera documentation 
+Typ som vi hade med doxygen i c++
