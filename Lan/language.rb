@@ -3,16 +3,15 @@ require "rdparse.rb"
 require "node.rb"
 require "scope.rb"
 
-
-
 class LanguageLexer   
     def initialize
-      @diceParser = Parser.new("dice roller") do
+      @diceParser = Parser.new("language lexer") do
         token(/\s+/)
-        
-        token(/\A[&&|and]\z/) {:and}
-        token(/\A[\|\||or]\z/) {:or}
-        token(/\A[!|not]\z/) {:not}
+        token((?<=\S\s)and(?=\s\S)|&&) {:and}
+        token(/(?<=\S\s)or(?=\s\S)|\|\|/) {:or}
+        token(/(?<=\S\s)not(?=\s\S)|!/) {:not}
+        token(/(?<=\S\s)true(?=\s\S)/) {:true}
+        token(/(?<=\S\s)false(?=\s\S)/) {:false}
         token(/==|<=|>=|!=|**/) {|m| m }
         token(/\d/) {:digit}
         token(/[a-zA-Z]/) {:char}
@@ -70,7 +69,6 @@ class LanguageLexer
             match(:factor, "*", :term)
             match(:factor, "/", :term)
             match(:factor)
-        
         end
       
         rule :factor do
@@ -81,6 +79,7 @@ class LanguageLexer
         
         rule :atom do
             match("(", :expression, ")")
+            match("\"", :char ,"\"")
             match(:variable_call)
             match(:float)
             match(:int)
@@ -96,7 +95,7 @@ class LanguageLexer
             match(:char, :variable)
             match(:variable, :digit)
         end
-
+        char a = "a"
         rule :array do
             match(:type, "[", "]")
         end
@@ -119,7 +118,10 @@ class LanguageLexer
             match(:digit, :int)
         end
 
-        
+        rule :bool do
+            match(:true)
+            match(:false)
+        end
     end
     
     def done(str)
