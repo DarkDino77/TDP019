@@ -138,7 +138,7 @@ def int fun_a(){
 <assignment> ::= mod <assignment>;
                | <array> <variable> = [<variable-list>];
                | <array> <variable> = [];
-               | <array> <variable>;
+               | <array> <variable>;<variable-call> 
                | int <variable> = <expresion>; 
                | int <variable>;
                | float <variable> = <expresion>;
@@ -198,7 +198,7 @@ def int fun_a(){
 
 <type> ::= int | float | bool | char | auto
 
-<float> ::=  <int>.<int>
+<float> ::=  <int>.<int> | .<int>
 <int> ::= <digit> | <digit><int>
 <bool> ::= true | false
 <digit> ::= 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9
