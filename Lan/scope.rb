@@ -44,4 +44,7 @@ class Scope
             print("Error: Variable not defined with name #{name}")
         end
     end
+    def self.evaluate()
+        
+    end
 end
