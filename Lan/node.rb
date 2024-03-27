@@ -7,8 +7,9 @@ class Node
     end
 end
 
+
 class Node_datatype < Node
-    attr_accessor :value,:type
+    attr_accessor :value, :type
     def initialize(value, type)
         @value = value
         @type = type
@@ -30,16 +31,17 @@ class Node_variable < Node
     end
 
     def get_type(scope)
-        return scope.look_up(@name).get_type(scope)
+        return scope.look_up_var(@name)["type"]
     end
     
     def evaluate(scope)
-        return scope.look_up(@name).evaluate(scope)
+        return scope.look_up_var(@name)["value"]
     end
 end
 
 
 class Node_expression < Node
+    attr_accessor :operator, :lhs, :rhs
     def initialize(lhs, operator, rhs)
         @lhs = lhs
         @operator = operator
@@ -58,20 +60,13 @@ class Node_expression < Node
         #Fråga simon
       
         if @lhs.get_type(scope) == @rhs.get_type(scope)
-            #return @lhs.evaluate(scope).send(@operator, @rhs.evaluate(scope))
-
-            #DEBUG
+            #return @lhs.evaluate(scope).send(@operator, @rhs.evaluate(scope)
             output = eval(@lhs.evaluate(scope) + @operator + @rhs.evaluate(scope))
-            pp output
-            return output 
+            return output.to_s
         else
             raise TypeError, "#{@lhs} is not the same type as #{@rhs} in #{self}"
         end
     end
 end
 
-class Node_function
-    
-
-end
 

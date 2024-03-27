@@ -1,10 +1,11 @@
 #!/usr/bin/env ruby
 
 class Scope
-    attr_accessor :variables, :functions, :parent_scope
+    attr_accessor :variables, :functions, :parent_scope, :statement_stack
     def initialize(parent_scope = nil)
         @variables = {}
         @functions = {}
+        @statement_stack = []
 
         @parent_scope = parent_scope
     end
@@ -34,17 +35,21 @@ class Scope
     end
 
     # Assigns a new value to a variable, searches recursively through parent scopes if not found.
-    def assign_var(name, value)
+    def assign_var(name, value, type, const= true)
         if @variables.has_key?(name)
-            @variables[name] = value
+            @variables[name]["value"] = value
         elsif @parent_scope != nil && @parent_scope.look_up_var(name)     
             return @parent_scope.assign_var(name, value)
         else
-            # Change to logger
-            print("Error: Variable not defined with name #{name}")
+            @variables[name] = {"value" => value, "type" => type, "const" => const}
         end
     end
-    def self.evaluate()
-        
+    
+    def evaluate()
+        @statement_stack.reverse_each do |m|
+            m.evaluate(self)
+        end
+
+        return @statement_stack
     end
 end

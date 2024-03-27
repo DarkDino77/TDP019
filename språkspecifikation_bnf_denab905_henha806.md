@@ -19,6 +19,7 @@
 
 <!------------Tilldelning------------>
 <assignment> ::= mod <assignment>;
+               | auto <variable> = <logical-expresion>;
                | <array> <variable> = [<variable-list>];
                | <array> <variable> = [];
                | <array> <variable>;
@@ -30,7 +31,7 @@
                | char <variable>;
                | bool <variable> = <logical-expresion>;
                | bool <variable>;
-               | auto <variable> = <logical-expresion>;
+               
 
 <!------------kontrollstrukturer------------>
 <control> ::= <if-expression> | <while-expression>

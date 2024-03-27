@@ -136,6 +136,7 @@ def int fun_a(){
 
 <!------------Tilldelning------------>
 <assignment> ::= mod <assignment>;
+               | auto <variable> = <logical-expresion>;
                | <array> <variable> = [<variable-list>];
                | <array> <variable> = [];
                | <array> <variable>;<variable-call> 
@@ -148,6 +149,8 @@ def int fun_a(){
                | bool <variable> = <logical-expresion>;
                | bool <variable>;
                | auto <variable> = <logical-expresion>;
+
+<re-assignment> ::= <variable> = <logical-expression>
 
 <!------------kontrollstrukturer------------>
 <control> ::= <if-expression> | <while-expression>
@@ -187,8 +190,12 @@ def int fun_a(){
 
 <atom> ::= ( <expression> )
          | <variable-call>
-         | <float>
-         | <int> 
+         | <unary>
+
+<unary> ::= -<float>
+          | <float>
+          | -<int>
+          | <int>
 
 <variable-call> ::= <variable> | <variable> [ <int> ]
 

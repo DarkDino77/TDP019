@@ -2,37 +2,47 @@
 require './rdparse.rb'
 require './node.rb'
 require './scope.rb'
-
+$counter = 0
 class LanguageParser  
+    attr_accessor :language_parser
     def initialize
-        @@scope_stack = [Scope.new()]
+        @@scope_stack = [Scope.new()] # INTE PÅ DETTA VIS?
         @@current_scope = @@scope_stack[0]
 
-
-        @language_parser= Parser.new("language parser") do
+        @language_parser = Parser.new("language parser") do
             token(/\s+/)
-            token(/(?<=\S\s)and(?=\s\S)|&&/) {:and}
-            token(/(?<=\S\s)or(?=\s\S)|\|\|/) {:or}
-            token(/(?<=\S\s)not(?=\s\S)|!/) {:not}
-            token(/(?<=\S\s)true(?=\s\S)/) {:true}
-            token(/(?<=\S\s)false(?=\s\S)/) {:false}
-            token(/==|<=|>=|!=|\*\*/) {|m| m }
-            token(/\d/) {|m| m }
-            token(/[a-zA-Z]/) {|m| m }
-            token(/./) {|m| m }
+            token(/(?<![\w-])and(?![\w-])|&&/) {:and}
+            token(/(?<![\w-])or(?![\w-])|\|\|/) {:or}
+            token(/(?<![\w-])not(?![\w-])/) {:not}
+            token(/(?<![\w-])true(?![\w-])/) {:true}
+            token(/(?<![\w-])false(?![\w-])/) {:false}
+            token(/(?<![\w-])mod(?![\w-])/) {:mod}
+            token(/(?<![\w-])int(?![\w-])/) {:int_token}
+            token(/(?<![\w-])float(?![\w-])/) {:float}
+            token(/(?<![\w-])char(?![\w-])/) {:char}
+            token(/(?<![\w-])bool(?![\w-])/) {:bool}
+            token(/(?<![\w-])auto(?![\w-])/) {:auto}
+            token(/\d/) {|m| m } #behövs?
+            token(/[a-zA-Z]/) {|m| m } #behövs?
+            token(/\A(==|<=|>=|!=|\*\*)/) {|m|  m}
+            token(/\A!/) {:not}
+
+            token(/./) {|m| m}
 
             start :program do
-                match(:scope) do |m|                     
-                    @@scope_stack << Scope.new(@@current_scope)
-                    @@current_scope = @@scope_stack[-1]
-                    m
+                match(:scope) do |m|        
+                    @@current_scope = @@scope_stack[-1]             
+                    @@scope_stack[0]
                 end
             end
 
             rule :scope do 
-                match("{", :scope, "}")
-                match(:operation, :scope)
-                match(:operation)
+                match("{", :scope, "}") { 
+                    @@scope_stack << Scope.new(@@current_scope)
+                    @@current_scope = @@scope_stack[-1]
+                }
+                match(:operation, :scope){|m, _| @@current_scope.statement_stack << m}
+                match(:operation) {|m| @@current_scope.statement_stack << m}
             end
 
             rule :operation do 
@@ -42,6 +52,32 @@ class LanguageParser
                 match(:function_def)
                 match(:logical_expression, ";")
                 match(:variable_call, ";")
+            end
+            
+            rule :assignment do 
+                match(:mod, :assignment){|_, name|
+                    @@current_scope.variable[name]["const"] = false
+
+                }
+                match(:int_token, :variable, "=", :expression) {|_, name,_,value|
+                    @@current_scope.assign_var(name, value.evaluate(@@current_scope), "int")
+                    value
+                }
+                match(:int_token, :variable){|_, name,_,value|
+                    @@current_scope.assign_var(name, 0, "int")
+                    value
+                }
+            end
+
+            rule :re_assignment do
+                match(:variable, "=", :logical_expression) { |name,_,value|
+                    if @@current_scope.variables.has_key?(name)
+                        if # Kolla att de är samma datatyp! och att inte är const!
+                    else
+                        raise "Ret"
+                    end
+                }
+
             end
             
             rule :logical_expression do 
@@ -65,17 +101,17 @@ class LanguageParser
             end
 
             rule :comparison_operator do
-                match("<")
-                match(">")
-                match("<=")
-                match(">=")
-                match("!=")
-                match("==")
+                match("<") {|m| m}
+                match(">") {|m| m}
+                match("<="){|m| m}
+                match(">="){|m| m}
+                match("!="){|m| m}
+                match("=="){|m| m}
             end
 
             rule :expression do
-                match(:term, "+", :expression) {|a,b,c| Node_expression.new(a,b,c)}
-                match(:term, "-", :expression) {|a,b,c| Node_expression.new(a,b,c)}
+                match(:term, "+", :expression ) {|a,b,c| Node_expression.new(a,b,c)}
+                match(:expression, "-", :term) {|a,b,c| Node_expression.new(a,b,c)}
                 match(:term)
             end
 
@@ -92,22 +128,37 @@ class LanguageParser
             end
             
             rule :atom do
-                match("(", :expression, ")")
-                match("\"", :char ,"\""){|m| Node_datatype.new(m, "char")}
+                match("-", "(", :expression, ")") {|_,_,m,_| 
+                    m.lhs.value = "-" + m.lhs.value
+                    m.rhs.value = "-" + m.rhs.value
+                    m
+                }
+                match("(", :expression, ")") {|_,m,_| m }
+                match("\"", :char ,"\"") {|m| Node_datatype.new(m, "char")}
+                match(:bool) {|m| Node_datatype.new(m.name, "bool")}
                 match(:variable_call)
+                match(:unary)
+            end
+            
+            rule :unary do
+                match("-", :float){|_, m| Node_datatype.new("-" + m, "float")}
                 match(:float){|m| Node_datatype.new(m, "float")}
+                match("-", :int){|_, m| Node_datatype.new("-" + m, "int")}
                 match(:int){|m| Node_datatype.new(m, "int")}
             end
+           
 
             rule :variable_call do
-                match(:variable)
+                match(:variable) {|m| Node_variable.new(m)}
                 match(:variable, "[", :int ,"]")
             end
 
             rule :variable do
-                match(:char)
-                match(:char, :variable)
-                match(:variable, :digit)
+                # match(:variable, :digit)
+                # match(:char, :variable)
+                match(:char) {|m| 
+                pp m
+                m}
             end
 
             rule :array do
@@ -115,16 +166,16 @@ class LanguageParser
             end
 
             rule :type do
-                match("int")
-                match("float")
-                match("bool")
-                match("char")
-                match("auto")
+                match(:int_token)
+                match(:float)
+                match(:bool)
+                match(:char)
+                match(:auto)
             end
 
             rule :float do
-                match(:int, ".", "int")
-                match(".", :int)
+                match(:int, ".", :int) {|a,b,c| a+b+c }
+                match(".", :int) {|a,b| a+b }
             end
 
             rule :int do
@@ -133,8 +184,8 @@ class LanguageParser
             end
 
             rule :bool do
-                match(:true) {|m| Node_datatype.new(m, "bool")}
-                match(:false) {|m| Node_datatype.new(m, "bool")}
+                match(:true) 
+                match(:false)
             end
 
             rule :digit do
@@ -150,23 +201,45 @@ class LanguageParser
     def done(str)
         ["quit","exit","bye","done",""].include?(str.chomp)
     end
+
+    def read_file(filename)
+        file = IO.readlines(filename, chomp: true)
+        file = file.join(" ")
     
-    def roll
-        print "[lang] "
-        str = gets.chomp
-        if done(str)
-            puts "Bye."
-        else
-            pp "innan"
-            parsed = @language_parser.parse(str)
-            pp parsed
-            if parsed
-                result = parsed.evaluate(@@current_scope) # Antag att detta är rot-noden i ditt syntaxträd
-                puts "=> #{result}"
-            else
-                puts "Syntax error"
+        parse_code(file)
+    end
+
+    def parse_code(data)
+        parsed = @language_parser.parse(data)
+
+        output = ""
+
+        pp parsed
+        (parsed.evaluate()).reverse_each do |a| 
+            if a != nil
+                output += eval(a.evaluate(parsed)).to_s
+                #pp eval(a.evaluate(parsed))
             end
-            roll()
+        end
+
+        output
+    end
+
+    
+    def execute(data)
+        #print "[lang] "
+        if done(data)
+            #puts "Bye."
+            pass
+        else
+
+            output=parse_code(data)
+
+            @@scope_stack = [Scope.new()]
+            @@current_scope = @@scope_stack[0]
+            
+            return output
+            
         end
     end
     
@@ -181,5 +254,6 @@ class LanguageParser
 end
 
 l = LanguageParser.new()
-l.roll()
+#pp l.read_file("test_program.gph")
+#l.roll()
 
