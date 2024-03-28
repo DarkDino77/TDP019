@@ -1,13 +1,14 @@
 #!/usr/bin/env ruby
 require './rdparse.rb'
 require './node.rb'
-require './scope.rb'
-$counter = 0
+#require './scope.rb'
+
 class LanguageParser  
     attr_accessor :language_parser
     def initialize
         @@scope_stack = [Scope.new()] # INTE PÅ DETTA VIS?
         @@current_scope = @@scope_stack[0]
+        @@previous_scope = nil
 
         @language_parser = Parser.new("language parser") do
             token(/\s+/)
@@ -22,6 +23,12 @@ class LanguageParser
             token(/(?<![\w-])char(?![\w-])/) {:char}
             token(/(?<![\w-])bool(?![\w-])/) {:bool}
             token(/(?<![\w-])auto(?![\w-])/) {:auto}
+            token(/(?<![\w-])if(?![\w-])/) {:if}
+            token(/(?<![\w-])while(?![\w-])/) {:while}
+
+            # token(/\{/) {:statement_list_start_symbol}
+            # token(/\}/) {:statement_list_end_symbol}
+
             token(/\d/) {|m| m } #behövs?
             token(/[a-zA-Z]/) {|m| m } #behövs?
             token(/\A(==|<=|>=|!=|\*\*)/) {|m|  m}
@@ -30,24 +37,36 @@ class LanguageParser
             token(/./) {|m| m}
 
             start :program do
-                match(:scope) do |m|        
+                match(:statement_list) do |m|        
                     @@current_scope = @@scope_stack[-1]             
                     @@scope_stack[0]
                 end
             end
 
-            rule :scope do 
-                match("{", :scope, "}") { 
-                    @@scope_stack << Scope.new(@@current_scope)
-                    @@current_scope = @@scope_stack[-1]
-                }
-                match(:operation, :scope){|m, _| @@current_scope.statement_stack << m}
-                match(:operation) {|m| @@current_scope.statement_stack << m}
+            rule :statement_list do 
+                # match("{", :statement_list, "}") {  FIXA OM ETT SCOPE SKA KUNNA SKAPAS MITT I KOD
+                #     @@scope_stack << Scope.new(@@current_scope)
+                #     @@current_scope = @@scope_stack[-1]
+                # }
+                match(:statement, :statement_list){|m| @@current_scope.statement_stack << m}
+                match(:statement) {|m| @@current_scope.statement_stack << m}
             end
 
-            rule :operation do 
+            rule :statement do 
                 match(:assignment, ";")
-                match(:control)
+                match(:re_assignment, ";")
+                match(:control){ |m|
+                    pp "Hello"
+                    # @@scope_stack << Scope.new(@@current_scope)
+                    # @@previous_scope = @@current_scope
+                    # @@current_scope = @@scope_stack[-1]
+                    # pp @@current_scope
+                    # pp @@previous_scope
+                    # pp @@scope_stack
+                    pp m
+                    m
+                }
+                
                 match(:function_call, ";")
                 match(:function_def)
                 match(:logical_expression, ";")
@@ -56,42 +75,54 @@ class LanguageParser
             
             rule :assignment do 
                 match(:mod, :assignment){|_, name|
-                    @@current_scope.variable[name]["const"] = false
-
+                pp "TEST: #{name}"
+                    @@current_scope.variables[name.name]["const"] = false
+                    name
                 }
                 match(:int_token, :variable, "=", :expression) {|_, name,_,value|
                     @@current_scope.assign_var(name, value.evaluate(@@current_scope), "int")
-                    value
+                    Node_variable.new(name)
                 }
                 match(:int_token, :variable){|_, name,_,value|
                     @@current_scope.assign_var(name, 0, "int")
-                    value
+                    Node_variable.new(name)
                 }
             end
 
             rule :re_assignment do
                 match(:variable, "=", :logical_expression) { |name,_,value|
-                    if @@current_scope.variables.has_key?(name)
-                        if # Kolla att de är samma datatyp! och att inte är const!
-                    else
-                        raise "Ret"
-                    end
+                    @@current_scope.re_assign_var(name, value)
+                    value
                 }
+            end
 
+            rule :control do
+                match(:if_expression) {|m| m}
+                match(:while_expression)
+            end
+
+            rule :if_expression do
+                match(:if , "(", :logical_expression, ")", "{",:statement_list,"}") {|_,_,expression,_,_,scope,_|
+                    l = Node_if.new(expression, scope)
+                  #  @@current_scope = @@previous_scope
+                    pp l
+                    l
+                }
             end
             
             rule :logical_expression do 
-                match(:logical_term, :or, :logical_expression)  
+                match(:logical_term, :or, :logical_expression)  {|a,b,c| Node_expression.new(a,b,c)}
                 match(:logical_term)
             end
             
             rule :logical_term do 
-                match(:logical_factor, :and, :logical_term)  
+                match(:logical_factor, :and, :logical_term)  {|a,b,c| Node_expression.new(a,b,c)}
                 match(:logical_factor)
             end
 
             rule :logical_factor do
-                match(:not, :logical_factor)  
+                #åter kom och fixa yep
+                match(:not, :logical_factor) {|_,m| Node_datatype.new("!"+m.evaluate(@@current_scope), "bool")} 
                 match(:comparison_expression)
             end
 
@@ -156,9 +187,7 @@ class LanguageParser
             rule :variable do
                 # match(:variable, :digit)
                 # match(:char, :variable)
-                match(:char) {|m| 
-                pp m
-                m}
+                match(:char) {|m| m }
             end
 
             rule :array do
@@ -227,19 +256,14 @@ class LanguageParser
 
     
     def execute(data)
-        #print "[lang] "
         if done(data)
-            #puts "Bye."
             pass
         else
-
             output=parse_code(data)
-
             @@scope_stack = [Scope.new()]
             @@current_scope = @@scope_stack[0]
-            
+        
             return output
-            
         end
     end
     

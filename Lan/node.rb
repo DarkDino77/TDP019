@@ -1,12 +1,20 @@
 #!/usr/bin/env ruby
-require './scope.rb'
+#require './scope.rb'
+
+# --------------------- SCOPE --------------------------
+@@scope_stack = [{}]
+@@current_scope = 0
+
+
+
+
+# ---------------------- NODE ---------------------------
 
 class Node
     def evaluate(scope)
         raise NotImplementedError, "Must implement #{self.class}.evaluate"
     end
 end
-
 
 class Node_datatype < Node
     attr_accessor :value, :type
@@ -24,8 +32,36 @@ class Node_datatype < Node
     end
 end
 
+class Node_if < Node
+    def initialize(expression, scope)
+        @expression = expression
+        @scope = scope
+        pp "@scope: #{@scope}"
+    end
+
+    def evaluate(scope)
+        l = Scope.new(scope)
+        
+        previous_scope = scope
+
+#        scope.statement_stack << l
+
+        pp "--------------------------Eval: #{@scope}"
+        l.statement_stack = @scope
+        
+        pp @expression
+        if eval(@expression.evaluate(scope)) 
+            pp "L is: #{l}"
+            return l.evaluate()
+        end
+
+        l.parent_scope.current_scope = previous_scope
+    end
+end
+
 
 class Node_variable < Node
+    attr_accessor :name
     def initialize(name)
         @name = name
     end
