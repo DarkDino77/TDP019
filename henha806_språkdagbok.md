@@ -13,3 +13,5 @@
 
 - 27/3 Idag har vi justerat implementeringen av aritmetiska uttryck. Vi hade ett problem där "**" inte fungerade och löste det genom att ändra ordningen i tokens, detta löste även problemet att "!=" inte fungerade då "!" konsumerades av not-token.Ännu ett problem var associativiteten för negativa uttryck och "-1--1" gav inte väntat resultat. Vi justerade regeln för minus-operationen och löste problemet. Vi även har skrivit enhetstester för den kod vi har hunnit implementera och vi har fått variabeltilldelning och variabel-anrop att fungera under eftermiddagen. 
 
+- 28/3 Under morgonen fortsatte vi på samma del som under gårdagen men kom allt eftersom fram till att vi behövde förändra hur vi tacklade problemet med att bygga AST. Vi hade en blandning av AST och kod som kördes i parsern och när vi försökte implementera if-satser märkte vi att vår scope-hantering inte fungerade. Vi Började om från början med de enkla matematiska uttrycken och skapade denna gåg noder för uttryck och körde koderna i eval för dessa noder istället.
+

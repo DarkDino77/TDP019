@@ -4,15 +4,15 @@ require './language.rb'
 class LanguageTest < Test::Unit::TestCase
 	@@l = LanguageParser.new()
 
-	# def test_arithmetic
-	#   assert_equal("3", @@l.execute("1+2;"))
-	#   assert_equal("9", @@l.execute("5+4;"))
+	def test_arithmetic
+	  assert_equal("3", @@l.execute("1+2;"))
+	  assert_equal("9", @@l.execute("5+4;"))
 	#   assert_equal("4", @@l.execute("7-3;"))
 	#   assert_equal("12", @@l.execute("3*4;"))
 	#   assert_equal("4", @@l.execute("8/2;"))
 	#   assert_equal("1", @@l.execute("10%3;"))
 	#   assert_equal("14", @@l.execute("2*(2+5);"))
-	#   assert_equal("-9", @@l.execute("1-(2*5);"))
+	# #   assert_equal("-9", @@l.execute("1-(2*5);"))
 	#   assert_equal("3", @@l.execute("1+4/2;"))
 	#   assert_equal("12", @@l.execute("9+3;"))
 	#   assert_equal("5", @@l.execute("12-7;"))
@@ -36,7 +36,7 @@ class LanguageTest < Test::Unit::TestCase
 	#   assert_equal("2", @@l.execute("-1--(4-1);"))
 	#   assert_equal("-5", @@l.execute("-5;"))
 	#   assert_equal("5", @@l.execute("5;"))
-	# end
+	end
 
 	# def test_comparisons
 	#   assert_equal("false", @@l.execute("true==false;"))
@@ -54,12 +54,12 @@ class LanguageTest < Test::Unit::TestCase
 	#   assert_equal("true", @@l.execute("7<=8;"))
 	# end
 
-	# def test_var
-	# 	assert_equal("5", @@l.execute("int x = 5;"))
-	# 	assert_equal("50", @@l.execute("mod int y = 50;"))
-	# 	assert_equal("101015", @@l.execute("mod int y = 50;y = 10; y + 5;"))
-	# 	assert_equal("101015", @@l.execute("mod int y = 20;10+23; y + 5;"))
-	# end
+	def test_var
+		assert_equal("5", @@l.execute("int x = 5;"))	
+		assert_equal("50", @@l.execute("mod int y = 50;"))
+		assert_equal("10", @@l.execute("mod int y = 50;y = 10;"))
+		assert_equal("33", @@l.execute("mod int y = 20;10+23;"))
+	end
 
 	# def test_not_operator
 	# 	assert_equal("false", @@l.execute("!true;"))
@@ -68,7 +68,7 @@ class LanguageTest < Test::Unit::TestCase
 	# 	assert_equal("false", @@l.execute("!0;"))
 	# end
 
-	def test_control_structure
-		assert_equal("4", @@l.execute("if(true){1+3;1+4;}"))
-	end
+	# def test_control_structure
+	# 	assert_equal("4", @@l.execute("if(true){1+3;1+4;}"))
+	# end
 end

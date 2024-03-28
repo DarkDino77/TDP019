@@ -1,14 +1,11 @@
 #!/usr/bin/env ruby
 require './rdparse.rb'
 require './node.rb'
-#require './scope.rb'
 
 class LanguageParser  
     attr_accessor :language_parser
     def initialize
-        @@scope_stack = [Scope.new()] # INTE PÅ DETTA VIS?
-        @@current_scope = @@scope_stack[0]
-        @@previous_scope = nil
+
 
         @language_parser = Parser.new("language parser") do
             token(/\s+/)
@@ -38,35 +35,21 @@ class LanguageParser
 
             start :program do
                 match(:statement_list) do |m|        
-                    @@current_scope = @@scope_stack[-1]             
-                    @@scope_stack[0]
+                    pp m
+                    m.evaluate
                 end
             end
 
             rule :statement_list do 
-                # match("{", :statement_list, "}") {  FIXA OM ETT SCOPE SKA KUNNA SKAPAS MITT I KOD
-                #     @@scope_stack << Scope.new(@@current_scope)
-                #     @@current_scope = @@scope_stack[-1]
-                # }
-                match(:statement, :statement_list){|m| @@current_scope.statement_stack << m}
-                match(:statement) {|m| @@current_scope.statement_stack << m}
+                # Fixa så att scopes kan skapas mitt i kod
+                match(:statement, :statement_list){|stm, stm_l| Node_statement_list.new(stm, stm_l)}
+                match(:statement)
             end
 
             rule :statement do 
-                match(:assignment, ";")
+                match(:assignment, ";") 
                 match(:re_assignment, ";")
-                match(:control){ |m|
-                    pp "Hello"
-                    # @@scope_stack << Scope.new(@@current_scope)
-                    # @@previous_scope = @@current_scope
-                    # @@current_scope = @@scope_stack[-1]
-                    # pp @@current_scope
-                    # pp @@previous_scope
-                    # pp @@scope_stack
-                    pp m
-                    m
-                }
-                
+                match(:control)
                 match(:function_call, ";")
                 match(:function_def)
                 match(:logical_expression, ";")
@@ -74,25 +57,23 @@ class LanguageParser
             end
             
             rule :assignment do 
-                match(:mod, :assignment){|_, name|
-                pp "TEST: #{name}"
-                    @@current_scope.variables[name.name]["const"] = false
-                    name
+                match(:mod, :assignment){|_, node|
+                    node.remove_const()
+                    node
                 }
                 match(:int_token, :variable, "=", :expression) {|_, name,_,value|
-                    @@current_scope.assign_var(name, value.evaluate(@@current_scope), "int")
-                    Node_variable.new(name)
+                    type = "int" # Sätt 'Type' dyamiskt 
+                    Node_assignment.new(type, name, value)
                 }
                 match(:int_token, :variable){|_, name,_,value|
-                    @@current_scope.assign_var(name, 0, "int")
-                    Node_variable.new(name)
+                    type = "int" # Sätt 'Type' dyamiskt 
+                    Node_assignment.new(type, name, value)
                 }
             end
 
             rule :re_assignment do
                 match(:variable, "=", :logical_expression) { |name,_,value|
-                    @@current_scope.re_assign_var(name, value)
-                    value
+                    Node_re_assignment.new(name, value)
                 }
             end
 
@@ -104,8 +85,7 @@ class LanguageParser
             rule :if_expression do
                 match(:if , "(", :logical_expression, ")", "{",:statement_list,"}") {|_,_,expression,_,_,scope,_|
                     l = Node_if.new(expression, scope)
-                  #  @@current_scope = @@previous_scope
-                    pp l
+                    # pp l
                     l
                 }
             end
@@ -122,7 +102,7 @@ class LanguageParser
 
             rule :logical_factor do
                 #åter kom och fixa yep
-                match(:not, :logical_factor) {|_,m| Node_datatype.new("!"+m.evaluate(@@current_scope), "bool")} 
+                match(:not, :logical_factor) {|_,m| Node_datatype.new("!"+m.evaluate(), "bool")} 
                 match(:comparison_expression)
             end
 
@@ -244,30 +224,19 @@ class LanguageParser
         output = ""
 
         pp parsed
-        (parsed.evaluate()).reverse_each do |a| 
-            if a != nil
-                output += eval(a.evaluate(parsed)).to_s
-                #pp eval(a.evaluate(parsed))
-            end
-        end
-
-        output
+        parsed 
     end
 
-    
     def execute(data)
         if done(data)
             pass
         else
             output=parse_code(data)
-            @@scope_stack = [Scope.new()]
-            @@current_scope = @@scope_stack[0]
         
             return output
         end
     end
     
-  
     def log(state = true)
         if state
             @diceParser.logger.level = Logger::DEBUG
