@@ -3,6 +3,8 @@ Typ som vi hade med doxygen i c++
 
 Ska 5 - 5/2 gå? detta fråga simon
 
+Kan vi ersätta char datatypen med strängar? 'a' + 'b'?
+
 true && false;
 true || false; 
 !true; 
@@ -19,3 +21,4 @@ add(5, 7);
 
 -5;
 +3;
+

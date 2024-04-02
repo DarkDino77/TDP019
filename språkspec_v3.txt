@@ -25,15 +25,10 @@ därfeter traverserar koden upp i hirearkin för att söka vidare där. Skulle v
               | <logical-expression>
               | <variable-call>  
               
-              
-<variable-list> ::= <variable-call> | <variable-call> , <variable-list>
-
-<function-def> ::= def <function-call> { <scope> }
-
-<function-call> ::= <variable> () | <variable> ( <variable-list>)
 
 <!------------Tilldelning------------>
 <assignment> ::= mod <assignment>;
+               | auto <variable> = <logical-expresion>;
                | <array> <variable> = [<variable-list>];
                | <array> <variable> = [];
                | <array> <variable>;
@@ -45,12 +40,20 @@ därfeter traverserar koden upp i hirearkin för att söka vidare där. Skulle v
                | char <variable>;
                | bool <variable> = <logical-expresion>;
                | bool <variable>;
-               | auto <variable> = <logical-expresion>;
+               
 
-<!------------kontrollstrukturer------------>
+<!------------Kontrollstrukturer------------>
 <control> ::= <if-expression> | <while-expression>
 <if-expression> ::= if ( <logical-expression> ) { <scope> }
 <while-expression> ::= while ( <logical-expression> ) { <scope> }
+
+<!------------Funktioner------------>
+<variable-list> ::= <logical-expression> | <logical-expression> , <variable-list>
+
+<function-def> ::= def <function-call> ( <variable-list>) { <scope> }
+
+<function-call> ::= <variable> () | <variable> ( <variable-list>)
+
 
 <!------------Logiska operationer------------>
 <logical-expression> ::= <logical-term> || <logical-expression> 
@@ -101,4 +104,5 @@ därfeter traverserar koden upp i hirearkin för att söka vidare där. Skulle v
 <bool> ::= true | false
 <digit> ::= 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9
 <char> ::= 'a' ... 'z' | 'A' ... 'Z'
+
 

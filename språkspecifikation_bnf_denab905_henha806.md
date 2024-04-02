@@ -10,12 +10,6 @@
               | <logical-expression>
               | <variable-call>  
               
-              
-<variable-list> ::= <variable-call> | <variable-call> , <variable-list>
-
-<function-def> ::= def <function-call> { <scope> }
-
-<function-call> ::= <variable> () | <variable> ( <variable-list>)
 
 <!------------Tilldelning------------>
 <assignment> ::= mod <assignment>;
@@ -33,10 +27,18 @@
                | bool <variable>;
                
 
-<!------------kontrollstrukturer------------>
+<!------------Kontrollstrukturer------------>
 <control> ::= <if-expression> | <while-expression>
 <if-expression> ::= if ( <logical-expression> ) { <scope> }
 <while-expression> ::= while ( <logical-expression> ) { <scope> }
+
+<!------------Funktioner------------>
+<assignment-list> ::= <assignment> | <assignment> , <assignment-list>
+
+<function-def> ::= def <function-call> { <scope> }
+
+<function-call> ::= <variable> () | <variable> ( <variable-list>)
+
 
 <!------------Logiska operationer------------>
 <logical-expression> ::= <logical-term> || <logical-expression> 

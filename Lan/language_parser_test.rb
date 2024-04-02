@@ -38,8 +38,14 @@ class LanguageTest < Test::Unit::TestCase
 	#   assert_equal("5", @@l.execute("5;"))
 	end
 
-	# def test_comparisons
-	#   assert_equal("false", @@l.execute("true==false;"))
+	def test_comparisons
+	  assert_equal("false", @@l.execute("true==false;"))
+	  assert_equal("false", @@l.execute("true && false;"))
+	  assert_equal("false", @@l.execute("true and false;"))
+	  assert_equal("true", @@l.execute("true || false;"))
+	  assert_equal("true", @@l.execute("true or false;"))
+
+
 	#   assert_equal("true", @@l.execute("5>3;"))
 	#   assert_equal("true", @@l.execute("2<4;"))
 	#   assert_equal("true", @@l.execute("5>=5;"))
@@ -52,14 +58,14 @@ class LanguageTest < Test::Unit::TestCase
 	#   assert_equal("true", @@l.execute("4<5;"))
 	#   assert_equal("true", @@l.execute("6>=6;"))
 	#   assert_equal("true", @@l.execute("7<=8;"))
-	# end
-
-	def test_var
-		assert_equal("5", @@l.execute("int x = 5;"))	
-		assert_equal("50", @@l.execute("mod int y = 50;"))
-		assert_equal("10", @@l.execute("mod int y = 50;y = 10;"))
-		assert_equal("33", @@l.execute("mod int y = 20;10+23;"))
 	end
+
+	# def test_var
+	# 	assert_equal("5", @@l.execute("int x = 5;"))	
+	# 	assert_equal("50", @@l.execute("mod int y = 50;"))
+	# 	assert_equal("10", @@l.execute("mod int y = 50;y = 10;"))
+	# 	assert_equal("25", @@l.execute("mod int y = 20;10+23;y;y+5;"))
+	# end
 
 	# def test_not_operator
 	# 	assert_equal("false", @@l.execute("!true;"))
@@ -69,6 +75,12 @@ class LanguageTest < Test::Unit::TestCase
 	# end
 
 	# def test_control_structure
-	# 	assert_equal("4", @@l.execute("if(true){1+3;1+4;}"))
+	# 	assert_equal("5", @@l.execute("if(true){1+3;1+4;}"))
+	# 	assert_equal("5", @@l.execute("int y = 5; if(y <= 3 + 3){1+4;}"))
+	# 	assert_equal("3", @@l.execute("mod int counter = 0; while(counter < 3){counter = counter + 1;} counter;"))
+	# end
+
+	# def test_functions
+	# 	assert_equal("5", @@l.execute("def fun_a(mod int a, mod int y, mod int x){a+3;}"))
 	# end
 end

@@ -15,3 +15,5 @@
 
 - 28/3 Under morgonen fortsatte vi på samma del som under gårdagen men kom allt eftersom fram till att vi behövde förändra hur vi tacklade problemet med att bygga AST. Vi hade en blandning av AST och kod som kördes i parsern och när vi försökte implementera if-satser märkte vi att vår scope-hantering inte fungerade. Vi Började om från början med de enkla matematiska uttrycken och skapade denna gåg noder för uttryck och körde koderna i eval för dessa noder istället.
 
+- 2/4 Idag arbetade vi under förmiddagen med att implementera if-satser och while-loopar. Dessa var relativt enkla att implementera och vi använde oss utav rubys if- och while-satser inom "evaluate" funktionerna för båda noderna. Vi stötte även på ett problem när vi körde tester för !-operatorn. Detta för att vi behövde evaluera ihopsättningen av !-tecknet och det logiska uttrycket. Mot slutet av dagens pass upptäckte vi ett problem när vi försökte implementera funktionsdefinitioner, och detta problem fanns också i vår implementation av and/&& och or/||, vilket vi missade p.g.a. bristande tester, vilket vi ska vara mer nogranna med framöver.
+

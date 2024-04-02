@@ -128,7 +128,7 @@ def int fun_a(){
               | <variable-call>  
               
               
-<variable-list> ::= <variable-call> | <variable-call> , <variable-list>
+<variable-list> ::= <logical-expression> | <logical-expression> , <variable-list>
 
 <function-def> ::= def <function-call> { <scope> }
 
