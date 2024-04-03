@@ -9,6 +9,7 @@ class LanguageParser
 
         @language_parser = Parser.new("language parser") do
             token(/\s+/)
+            token(/\bprint\b/) {:print}
             token(/\btrue\b/) {:true}
             token(/\bfalse\b/) {:false}
             token(/\band\b|&&/) {:and}
@@ -37,7 +38,8 @@ class LanguageParser
 
             start :program do
                 match(:statement_list) do |m|        
-                    pp m
+                    pp "============================[NODE TREE]============================", m, 
+                    "==================================================================="
                     m.evaluate
                 end
             end
@@ -49,6 +51,8 @@ class LanguageParser
             end
 
             rule :statement do 
+                match(:print, "(", "'", :variable,"'", ")", ";") {|_,_,_,var,_,_,_|pp var}
+                match(:print, "(", :variable_call, ")", ";") {|_,_,var,_,_|pp var}
                 match(:return_statement, ";")
                 match(:assignment, ";")
                 match(:re_assignment, ";")
@@ -117,7 +121,7 @@ class LanguageParser
             end
 
             rule :function_def do
-                match(:def, :variable, "(", ")", "{",:statement_list, "}") {|_, var, _, _, _, stmt_list, _|
+                match(:def, :variable, "(", ")", "{",:statement_list, "}") {|_, name, _, _, _, stmt_list, _|
                     Node_function.new(name, [], stmt_list)}
                 match(:def, :variable, "(", :assignment_list, ")", "{",:statement_list, "}") {|_, name, _, ass_list, _, _, stmt_list, _|
                     Node_function.new(name, ass_list.flatten, stmt_list)} 
@@ -178,6 +182,7 @@ class LanguageParser
             end
             
             rule :atom do
+                match(:function_call)
                 match("-", "(", :expression, ")") {|_,_,m,_| 
                     m.lhs.value = "-" + m.lhs.value
                     m.rhs.value = "-" + m.rhs.value

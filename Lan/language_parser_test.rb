@@ -4,61 +4,63 @@ require './language.rb'
 class LanguageTest < Test::Unit::TestCase
 	@@l = LanguageParser.new()
 
-	# def test_arithmetic
-	#   assert_equal("3", @@l.execute("1+2;"))
-	#   assert_equal("9", @@l.execute("5+4;"))
-	#   assert_equal("4", @@l.execute("7-3;"))
-	#   assert_equal("12", @@l.execute("3*4;"))
-	#   assert_equal("4", @@l.execute("8/2;"))
-	#   assert_equal("1", @@l.execute("10%3;"))
-	#   assert_equal("14", @@l.execute("2*(2+5);"))
-	# #   assert_equal("-9", @@l.execute("1-(2*5);"))
-	#   assert_equal("3", @@l.execute("1+4/2;"))
-	#   assert_equal("12", @@l.execute("9+3;"))
-	#   assert_equal("5", @@l.execute("12-7;"))
-	#   assert_equal("12", @@l.execute("2*6;"))
-	#   assert_equal("6", @@l.execute("18/3;"))
-	#   assert_equal("1", @@l.execute("17%4;"))
-	#   assert_equal("16", @@l.execute("2**4;"))
-	#   assert_equal("21", @@l.execute("(1+2)*(3+4);"))
-	#   # assert_equal("2", @@l.execute("1+(4*2)-(5/2);"))
-	#   assert_equal("4.0", @@l.execute("1.5+2.5;"))
-	#   assert_equal("2.0", @@l.execute("3.0-1.0;"))
-	#   assert_equal("9.0", @@l.execute("4.5*2.0;"))
-	#   assert_equal("3.0", @@l.execute("9.0/3.0;"))
-	#   assert_equal("0.30000000000000004", @@l.execute("0.1+0.2;"))
-	#   assert_equal("0.19999999999999996", @@l.execute("1.0-0.8;"))
-	#   # assert_equal("0.5", @@l.execute("2/4;"))
-	#   assert_equal("-4", @@l.execute("-1-3;"))
-	#   assert_equal("2", @@l.execute("-1--3;"))
-	#   assert_equal("4", @@l.execute("1--3;"))
-	#   assert_equal("-1", @@l.execute("-1--1-1;"))
-	#   assert_equal("2", @@l.execute("-1--(4-1);"))
-	#   assert_equal("-5", @@l.execute("-5;"))
-	#   assert_equal("5", @@l.execute("5;"))
-	# end
+	def test_arithmetic
+	  assert_equal("3", @@l.execute("1+2;"))
+	  assert_equal("a b", @@l.execute("'a'+'b';"))
+	  assert_equal("9", @@l.execute("5+4;"))
+	  assert_equal("4", @@l.execute("7-3;"))
+	  assert_equal("12", @@l.execute("3*4;"))
+	  assert_equal("4", @@l.execute("8/2;"))
+	  assert_equal("1", @@l.execute("10%3;"))
+	  assert_equal("14", @@l.execute("2*(2+5);"))
+	#   assert_equal("-9", @@l.execute("1-(2*5);"))
+	  assert_equal("3", @@l.execute("1+4/2;"))
+	  assert_equal("12", @@l.execute("9+3;"))
+	  assert_equal("5", @@l.execute("12-7;"))
+	  assert_equal("12", @@l.execute("2*6;"))
+	  assert_equal("6", @@l.execute("18/3;"))
+	  assert_equal("1", @@l.execute("17%4;"))
+	  assert_equal("16", @@l.execute("2**4;"))
+	  assert_equal("21", @@l.execute("(1+2)*(3+4);"))
+	  # assert_equal("2", @@l.execute("1+(4*2)-(5/2);"))
+	  assert_equal("4.0", @@l.execute("1.5+2.5;"))
+	  assert_equal("2.0", @@l.execute("3.0-1.0;"))
+	  assert_equal("9.0", @@l.execute("4.5*2.0;"))
+	  assert_equal("3.0", @@l.execute("9.0/3.0;"))
+	  assert_equal("0.30000000000000004", @@l.execute("0.1+0.2;"))
+	  assert_equal("0.19999999999999996", @@l.execute("1.0-0.8;"))
+	  # assert_equal("0.5", @@l.execute("2/4;"))
+	  assert_equal("-4", @@l.execute("-1-3;"))
+	  assert_equal("2", @@l.execute("-1--3;"))
+	  assert_equal("4", @@l.execute("1--3;"))
+	  assert_equal("-1", @@l.execute("-1--1-1;"))
+	  assert_equal("2", @@l.execute("-1--(4-1);"))
+	  assert_equal("-5", @@l.execute("-5;"))
+	  assert_equal("5", @@l.execute("5;"))
+	end
 
-	# def test_comparisons
-	#   assert_equal("false", @@l.execute("true==false;"))
-	#   assert_equal("false", @@l.execute("true && false;"))
-	#   assert_equal("false", @@l.execute("true and false;"))
-	#   assert_equal("true", @@l.execute("true || false;"))
-	#   assert_equal("true", @@l.execute("true or false;"))
+	def test_comparisons
+	  assert_equal("false", @@l.execute("true==false;"))
+	  assert_equal("false", @@l.execute("true && false;"))
+	  assert_equal("false", @@l.execute("true and false;"))
+	  assert_equal("true", @@l.execute("true || false;"))
+	  assert_equal("true", @@l.execute("true or false;"))
 
 
-	#   assert_equal("true", @@l.execute("5>3;"))
-	#   assert_equal("true", @@l.execute("2<4;"))
-	#   assert_equal("true", @@l.execute("5>=5;"))
-	#   assert_equal("true", @@l.execute("4<=6;"))
-	#   assert_equal("true", @@l.execute("5!=3;"))
-	#   assert_equal("false", @@l.execute("5!=5;"))
-	#   assert_equal("true", @@l.execute("7==7;"))
-	#   assert_equal("true", @@l.execute("10!=5;"))
-	#   assert_equal("true", @@l.execute("3>2;"))
-	#   assert_equal("true", @@l.execute("4<5;"))
-	#   assert_equal("true", @@l.execute("6>=6;"))
-	#   assert_equal("true", @@l.execute("7<=8;"))
-	# end
+	  assert_equal("true", @@l.execute("5>3;"))
+	  assert_equal("true", @@l.execute("2<4;"))
+	  assert_equal("true", @@l.execute("5>=5;"))
+	  assert_equal("true", @@l.execute("4<=6;"))
+	  assert_equal("true", @@l.execute("5!=3;"))
+	  assert_equal("false", @@l.execute("5!=5;"))
+	  assert_equal("true", @@l.execute("7==7;"))
+	  assert_equal("true", @@l.execute("10!=5;"))
+	  assert_equal("true", @@l.execute("3>2;"))
+	  assert_equal("true", @@l.execute("4<5;"))
+	  assert_equal("true", @@l.execute("6>=6;"))
+	  assert_equal("true", @@l.execute("7<=8;"))
+	  assert_equal("true", @@l.execute("7<=8;"))
+	end
 
 	# def test_var
 	# 	assert_equal("5", @@l.execute("int x = 5;"))	
@@ -81,13 +83,88 @@ class LanguageTest < Test::Unit::TestCase
 	# 	assert_equal("3", @@l.execute("mod int counter = 0; while(counter < 3){counter = counter + 1;} counter;"))
 	# end
 
-	def test_functions
-		# assert_equal(nil, @@l.execute("def fun_a(mod int a, mod int y, mod int x){a+3;}"))
-		# assert_equal("5", @@l.execute("def fun_a(mod int a){a+3;} fun_a(2);"))
-		# assert_equal("15", @@l.execute("def fun_a(mod int a, int b, mod int c){a+b+c;} fun_a(2,6,7);"))
-		# assert_equal("10", @@l.execute("int d=10; def fun_a(mod int a, int b, mod int c){a*b-c; a = 20;} fun_a(3,4,8); d;"))
-		assert_equal("5", @@l.execute("def fun_a(mod int a){mod int b = a+3; return b; b = 10;} fun_a(2);"))
-	end
+	# def test_functions
+	# 	assert_equal(nil, @@l.execute("def fun_a(mod int a, mod int y, mod int x){a+3;}"))
+	# 	assert_equal(nil, @@l.execute("def fun_a(mod int a){a+3;} fun_a(2);"))
+	# 	assert_equal("2", @@l.execute("mod int x = 10; def mod_x(mod int a){x=a;} mod_x(2); x;"))
+	# 	assert_equal("2", @@l.execute("def fun_a(mod int a){ return a;} fun_a(2);"))
+	# 	assert_equal("10", @@l.execute("int d=10; def fun_a(mod int a, int b, mod int c){a*b-c; a = 20;} fun_a(3,4,8); d;"))
+	# 	assert_equal("5", @@l.execute("def fun_a(mod int a){mod int b = a+3; return b; b = 10;} fun_a(2);"))
+	# 	assert_equal(nil, @@l.execute("def fun_a(mod int a){mod int b = a+3;} fun_a(2);"))
+	# 	assert_equal("9", @@l.execute("def fun_a(mod int a, mod int b, int c){1+2; return(a+b+c);} fun_a(2,3,4);"))
+	# 	assert_equal("9", @@l.execute("def fun_a(mod int a, mod int b, int c){return(a+b+c);1+a;} fun_a(2,3,4);"))
+	# end
 
+	# def test_complex_expressions
+	# # 	# Test complex arithmetic
+	# 	 assert_equal("4", @@l.execute("def calculate(){ return 2*2; } calculate();"))
+	  
+	# # 	# Test using variables in complex expressions
+	# 	 assert_equal("7", @@l.execute("int a = 3; int b = 4; def sum(){ return a+b; } sum();"))
+	  
+	# # 	# Test conditionals
+	# # 	assert_equal("true", @@l.execute("def check(){ if(5 > 2) { return true; } else { return false; } } check();"))
+	# end
+	  
+	# def test_function_within_function
+	# 	assert_equal("11",@@l.execute("def add_5(int num){return num+5;} 1+add_5(5);"))
+	# 	# Test defining a function within another function and calling it
+	# 	assert_equal("10", @@l.execute("
+	# 		def inner(int a){ 
+	# 			print(a);
+	# 			return a * 2; 
+	# 		}
+	# 	  	def outer(){
+	# 			int output = inner(5);
+	# 			return output;
+	# 	  	}
+	# 		outer();
+	# 	"))
+		
+	# 	# Test variable scope - variable defined in outer function accessible in inner function
+	# 	assert_equal("15", @@l.execute("
+	# 	  def outer(){
+	# 		int base = 5;
+	# 		def inner(int a){ return a + base; }
+	# 		return inner(10);
+	# 	  }
+	# 	  outer();
+	# 	"))
+		
+	# 	# Test recursion
+	# 	# assert_equal("120", @@l.execute("
+	# 	#   def factorial(mod int n){
+	# 	# 	if(n <= 1){ return 1; }
+	# 	# 	return n * factorial(n-1); 
+	# 	#   }
+	# 	#   factorial(5);
+	# 	# "))
+	# end
+	  
+	# def test_loop_with_function
+	# 	# Test using a function within a loop
+	# 	assert_equal("true", @@l.execute("
+	# 	  mod int i = 0;
+	# 	  def check_limit(mod int a){ if(a < 5){ 1+2; return true; 3+4;} if(a >= 5){ 1+2; return false; 3+4; }}
+	# 	  check_limit(2);
+	# 	"))
+	# 	assert_equal("true", @@l.execute("
+	# 	mod int i = 0;
+	# 	def check_limit(mod int a){ if(a >= 5){ 1+2; return false; 3+4; } if(a < 5){ 1+2; return true; 3+4;}}
+	# 	check_limit(2);
+	#   	"))
 
+	# 	assert_equal("true", @@l.execute("
+	# 	mod int i = 0;
+	# 	def check_limit(mod int a){if(a < 5){return true;}}
+	# 	check_limit(2);
+	# 	"))
+
+	# 	assert_equal("5", @@l.execute("
+	# 	mod int i = 0;
+	# 	def checkLimit(int a){ if(a < 5) { return true; }  if(a >= 5){ return false; } }
+	# 	while(checkLimit(i)){ i = i + 1; }
+	# 	if(i == 5) { i; } 
+	# 	"))
+	# end
 end

@@ -33,7 +33,7 @@ class Node
             end
             stack_counter -=1
         end
-        raise "Variable with the name #{name} was not found"
+        raise "Variable with the name #{name} was not found in scope with variables: #{@@variable_stack[@@current_scope]}, all scopes: #{@@variable_stack}"
     end
 
     # looks up wheter the variable exists in the current scope or any parrent scope
@@ -46,7 +46,7 @@ class Node
             end
             stack_counter -=1
         end
-        raise "Variable with the name #{name} was not found"
+        raise "Variable with the name #{name} was not found THERE"
     end
 end
 
@@ -54,7 +54,9 @@ class Node_return < Node
     def initialize(expr)
         @expr = expr
     end
-
+    def get_type()
+        @expr.get_type
+    end
     def evaluate()
         @expr.evaluate
     end
@@ -66,14 +68,27 @@ class Node_statement_list < Node
         @statement = statement
         @statement_list = statement_list
     end
+
     def evaluate()
+        #pp "hello------------------------------------------"
+        pp "STATEMENT: #{@statement}"
+        pp "STATEMENT LIST: #{@statement_list}"
         if @statement.is_a?(Node_return)
-            return @statement.evaluate
-        else
+            return @statement
+        elsif @statement_list.is_a?(Node_return)
             @statement.evaluate
-            @statement_list.evaluate 
+            return @statement_list
+        else
+            #pp "hello------------------------------------------"
+            if @statement.evaluate.is_a?(Node_return)
+                return @statement.evaluate
+            else
+                @statement.evaluate
+                @statement_list.evaluate 
+            end
         end
     end
+
 end
 
 
@@ -100,12 +115,20 @@ class Node_if < Node
     end
     
     def evaluate
+        pp "Hello--------------------------------------------------------"
+        pp @expression.evaluate
         new_scope()
+        
         if eval(@expression.evaluate)
             return_value = @statement_list.evaluate()
             close_scope()
+            if @statement_list.is_a?(Node_return)
+                return @statement_list
+            end
+            # pp "RETURNING, STATMENT WAS TRUE, RETURNING: #{return_value}, THE STATEMENT LIST WAS: #{@statement_list}"
             return return_value
         end
+        pp "RETURNING, STATMENT WAS FALSE, RETURNING: nil"
         close_scope()
         nil
     end
@@ -156,6 +179,8 @@ class Node_assignment < Node
     end
 
     def evaluate()
+        pp "assignment #{@@variable_stack}++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++"
+
         if @@variable_stack.any? { |hash| hash.value?(@name) }
             raise "Variable with name #{@name} already exists"
         else
@@ -187,7 +212,7 @@ class Node_re_assignment < Node
                 raise "Variable with name #{@name} is const"
             end
         else
-            raise "Variable with name #{@name} not found"
+            raise "Variable with name #{@name} not found in scope with variables: #{@@variable_stack[@@current_scope]}"
         end
         nil
     end
@@ -212,6 +237,11 @@ class Node_function_call < Node
     def initialize(name, variable_list)
         @name = name
         @variable_list = variable_list
+        @type_value = nil
+    end
+    def get_type()
+        evaluate()
+        return @type_value
     end
 
     def evaluate()
@@ -230,13 +260,23 @@ class Node_function_call < Node
                 counter = counter + 1
             end
             new_scope()
-            pp fun.function_body
+            
             fun.variable_list.each do |var|
                 var.evaluate()
             end
+
+            return_value = fun.function_body.evaluate
             
-            return_value = fun.function_body.evaluate()
+            if fun.function_body.is_a?(Node_return)
+                @type_value = fun.function_body.get_type
+            elsif return_value.is_a?(Node_return)
+                @type_value = return_value.get_type
+                return_value = return_value.evaluate
+            else 
+                return_value = nil
+            end
             close_scope()
+            #Node_datatype.new(return_value, @type_value)
             return return_value
         end
         raise "The function with the name #{@name} does not exist"

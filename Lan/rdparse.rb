@@ -82,7 +82,7 @@ class Rule
             result = nil
             break
           end
-          @logger.debug("Matched '#{@name} = #{match.pattern[index..-1].inspect}'")
+          #@logger.debug("Matched '#{@name} = #{match.pattern[index..-1].inspect}'")
         else
           # Otherwise, we consume the token as part of applying this rule
           nt = @parser.expect(token)
@@ -93,7 +93,7 @@ class Rule
             else
               pattern = match.pattern
             end
-            @logger.debug("Matched token '#{nt}' as part of rule '#{@name} <= #{pattern.inspect}'")
+            #@logger.debug("Matched token '#{nt}' as part of rule '#{@name} <= #{pattern.inspect}'")
           else
             result = nil
             break
@@ -106,7 +106,7 @@ class Rule
         else
           match_result = result[0]
         end
-        @logger.debug("'#{@parser.string[start..@parser.pos-1]}' matched '#{@name}' and generated '#{match_result.inspect}'") unless match_result.nil?
+        #@logger.debug("'#{@parser.string[start..@parser.pos-1]}' matched '#{@name}' and generated '#{match_result.inspect}'") unless match_result.nil?
         break
       else
         # If this rule did not match the current token list, move
