@@ -1,0 +1,9 @@
+- Om en variabel i lägre scope har samma namn som en variabel i högre scope, ska detta gå?
+
+- Return
+
+- Andra variabeltyper
+
+- Naturliga floatvärden (Auto?)
+
+- Funktioner returnerar nil

@@ -9,26 +9,27 @@ class LanguageParser
 
         @language_parser = Parser.new("language parser") do
             token(/\s+/)
-            token(/(?<![\w-])true(?![\w-])/) {:true}
-            token(/(?<![\w-])false(?![\w-])/) {:false}
-            token(/(?<![\w-])and(?![\w-])|&&/) {:and}
-            token(/(?<![\w-])or(?![\w-])|\|\|/) {:or}
-            token(/(?<![\w-])not(?![\w-])/) {:not}
-            token(/(?<![\w-])mod(?![\w-])/) {:mod}
-            token(/(?<![\w-])int(?![\w-])/) {:int_token}
-            token(/(?<![\w-])float(?![\w-])/) {:float}
-            token(/(?<![\w-])char(?![\w-])/) {:char_token}
-            token(/(?<![\w-])bool(?![\w-])/) {:bool}
-            token(/(?<![\w-])auto(?![\w-])/) {:auto}
-            token(/(?<![\w-])if(?![\w-])/) {:if}
-            token(/(?<![\w-])while(?![\w-])/) {:while}
-            token(/(?<![\w-])def(?![\w-])/) {:def}
+            token(/\btrue\b/) {:true}
+            token(/\bfalse\b/) {:false}
+            token(/\band\b|&&/) {:and}
+            token(/\bor\b|\|\|/) {:or}
+            token(/\bnot\b/) {:not}
+            token(/\bmod\b/) {:mod}
+            token(/\bint\b/) {:int_token}
+            token(/\bfloat\b/) {:float}
+            token(/\bchar\b/) {:char_token}
+            token(/\bbool\b/) {:bool}
+            token(/\bauto\b/) {:auto}
+            token(/\breturn\b/) {:return}
+            token(/\bif\b/) {:if}
+            token(/\bwhile\b/) {:while}
+            token(/\bdef\b/) {:def}
 
             # token(/\{/) {:statement_list_start_symbol}
             # token(/\}/) {:statement_list_end_symbol}
 
-            token(/\d/) {|m| m } #behövs?
-            token(/[a-zA-Z_]/) {|m| m } #behövs?
+            token(/(?<![\w-])\d(?![\w-])/) {|m| m } #behövs?
+            token(/(?<![\w-])[a-zA-Z_](?![\w-])/) {|m| m } #behövs?
             token(/\A(==|<=|>=|!=|\*\*)/) {|m|  m}
             token(/\A!/) {:not}
 
@@ -48,7 +49,8 @@ class LanguageParser
             end
 
             rule :statement do 
-                match(:assignment, ";") 
+                match(:return_statement, ";")
+                match(:assignment, ";")
                 match(:re_assignment, ";")
                 match(:control)
                 match(:function_call, ";")
@@ -57,6 +59,10 @@ class LanguageParser
                 match(:variable_call, ";")
             end
             
+            rule :return_statement do
+                match(:return, :logical_expression) {|_, expr| Node_return.new(expr)}
+            end
+
             rule :assignment do 
                 match(:mod, :assignment){|_, node|
                     node.remove_const()
@@ -85,32 +91,36 @@ class LanguageParser
 
             rule :if_expression do
                 match(:if , "(", :logical_expression, ")", "{",:statement_list,"}") {|_,_,expression,_,_,scope,_|
-                    l = Node_if.new(expression, scope)
-                    # pp l
-                    l
+                 Node_if.new(expression, scope)
+                 
                 }
             end
 
             rule :while_expression do
                 match(:while , "(", :logical_expression, ")", "{",:statement_list,"}") {|_,_,expression,_,_,scope,_|
-                    l = Node_while.new(expression, scope)
-                    # pp l
-                    l
+                    Node_while.new(expression, scope)
+                   
                 }
             end 
             # a(5,6,7)
 
+            rule :function_call do
+                match(:variable, "(", :variable_list, ")") {| name, _, var_list, _|
+                Node_function_call.new(name, var_list.flatten)} 
+                match(:variable, "(", ")"){| name, _, _|
+                Node_function_call.new(name, [])}
+            end
+
+            rule :variable_list do
+                match(:logical_expression, ",", :variable_list) {|m, _, n| [m] << [n] }
+                match(:logical_expression) {|m| [m] }
+            end
+
             rule :function_def do
                 match(:def, :variable, "(", ")", "{",:statement_list, "}") {|_, var, _, _, _, stmt_list, _|
-                    fun_node = Node_function.new(name, [], stmt_list)
-                    fun_node
-                }
+                    Node_function.new(name, [], stmt_list)}
                 match(:def, :variable, "(", :assignment_list, ")", "{",:statement_list, "}") {|_, name, _, ass_list, _, _, stmt_list, _|
-                    fun_node = Node_function.new(name, ass_list.flatten, stmt_list)
-                    fun_node
-                }
-                    
-                
+                    Node_function.new(name, ass_list.flatten, stmt_list)} 
             end
 
             rule :assignment_list do
@@ -195,9 +205,7 @@ class LanguageParser
 
             rule :variable do
                 match(:variable, :digit){|m,n| m  + n  }
-                match(:char, :variable){|m,n|
-                pp m,n
-                m + n }
+                match(:char, :variable){|m,n| m + n }
                 match(:char) {|m| m }
             end
 
@@ -229,14 +237,11 @@ class LanguageParser
             end
 
             rule :digit do
-                match(/\d/) {|m| m}
+                match(/(?<![\w-])\d(?![\w-])/) {|m| m}
             end
 
             rule :char do
-                match(/[a-zA-Z_]/) {|m| 
-                pp m
-                m
-            }
+                match(/(?<![\w-])[a-zA-Z_](?![\w-])/) {|m| m}
             end
         end
     end
@@ -253,12 +258,8 @@ class LanguageParser
     end
 
     def parse_code(data)
-        parsed = @language_parser.parse(data)
-
-        output = ""
-
-        pp parsed
-        parsed 
+        return @language_parser.parse(data)
+        # pp parsed
     end
 
     def execute(data)

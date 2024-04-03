@@ -50,6 +50,16 @@ class Node
     end
 end
 
+class Node_return < Node
+    def initialize(expr)
+        @expr = expr
+    end
+
+    def evaluate()
+        @expr.evaluate
+    end
+end
+
 
 class Node_statement_list < Node
     def initialize(statement, statement_list)
@@ -57,8 +67,12 @@ class Node_statement_list < Node
         @statement_list = statement_list
     end
     def evaluate()
-        @statement.evaluate
-        @statement_list.evaluate 
+        if @statement.is_a?(Node_return)
+            return @statement.evaluate
+        else
+            @statement.evaluate
+            @statement_list.evaluate 
+        end
     end
 end
 
@@ -113,34 +127,6 @@ class Node_while < Node
     end
 end
 
-# class Node_if < Node
-#     def initialize(expression, scope)
-#         @expression = expression
-#         @scope = scope
-#         pp "@scope: #{@scope}"
-#     end
-
-#     def evaluate(scope)
-#         l = Scope.new(scope)
-        
-#         previous_scope = scope
-
-# #        scope.statement_stack << l
-
-#         pp "--------------------------Eval: #{@scope}"
-#         l.statement_stack = @scope
-        
-#         pp @expression
-#         if eval(@expression.evaluate(scope)) 
-#             pp "L is: #{l}"
-#             return l.evaluate()
-#         end
-
-#         l.parent_scope.current_scope = previous_scope
-#     end
-# end
-
-
 class Node_variable < Node
     attr_accessor :name
     def initialize(name)
@@ -156,9 +142,8 @@ class Node_variable < Node
     end
 end
 
-
-
 class Node_assignment < Node
+    attr_accessor :value
     def initialize(type, name, value)
         @name = name
         @value = value
@@ -166,6 +151,10 @@ class Node_assignment < Node
         @const = true
     end
     
+    def get_type()
+        return @type
+    end
+
     def evaluate()
         if @@variable_stack.any? { |hash| hash.value?(@name) }
             raise "Variable with name #{@name} already exists"
@@ -177,20 +166,6 @@ class Node_assignment < Node
     
     def remove_const()
         @const = false
-    end
-end
-
-class Node_function < Node
-    def initialize(name, variable_list = [], function_body)
-        @name = name
-        @variable_list = variable_list 
-        @function_body = function_body
-    end
-
-    def evaluate()
-        @@function_stack[@@current_scope][@name] = self
-        pp @@function_stack
-        nil
     end
 end
 
@@ -207,7 +182,7 @@ class Node_re_assignment < Node
         if var
             if var["const"] == false
                 var["value"] = @value.evaluate
-                return var
+                return var["value"] # <------ Return entire var?
             else
                 raise "Variable with name #{@name} is const"
             end
@@ -218,6 +193,55 @@ class Node_re_assignment < Node
     end
 end
 
+class Node_function < Node
+    attr_accessor :name, :variable_list, :function_body
+    def initialize(name, variable_list = [], function_body)
+        @name = name
+        @variable_list = variable_list 
+        @function_body = function_body
+    end
+
+    def evaluate()
+        @@function_stack[@@current_scope][@name] = self
+        #pp @@function_stack
+        nil
+    end
+end
+
+class Node_function_call < Node
+    def initialize(name, variable_list)
+        @name = name
+        @variable_list = variable_list
+    end
+
+    def evaluate()
+        fun = look_up_fun(@name)
+        if fun != nil
+            if @variable_list.size != fun.variable_list.size
+                raise "Wrong number of arguments, #{fun.name} expected #{fun.variable_list.size} arguments"
+            end
+
+            counter = 0
+            @variable_list.each do |var|
+                if var.get_type != fun.variable_list[counter].get_type
+                    raise "#{fun.name} expected a #{fun.variable_list[counter].get_type} at index #{counter}"
+                end
+                fun.variable_list[counter].value = var
+                counter = counter + 1
+            end
+            new_scope()
+            pp fun.function_body
+            fun.variable_list.each do |var|
+                var.evaluate()
+            end
+            
+            return_value = fun.function_body.evaluate()
+            close_scope()
+            return return_value
+        end
+        raise "The function with the name #{@name} does not exist"
+    end
+end
 
 class Node_expression < Node
     attr_accessor :operator, :lhs, :rhs
@@ -228,7 +252,6 @@ class Node_expression < Node
     end
 
     def get_type()
-        pp "------------------------LHS: #{@lhs}"
         if @lhs.get_type() == @rhs.get_type()
             return @lhs.get_type()
         else
@@ -242,7 +265,7 @@ class Node_expression < Node
         if @lhs.get_type() == @rhs.get_type()
             #return @lhs.evaluate(scope).send(@operator, @rhs.evaluate(scope)
             #output = eval(@lhs.evaluate() + @operator + @rhs.evaluate())
-            pp @lhs, @operator, @rhs
+          #  pp @lhs, @operator, @rhs
             return eval(@lhs.evaluate() + @operator + @rhs.evaluate()).to_s
         else
             raise TypeError, "#{@lhs} is not the same type as #{@rhs} in #{self}"

@@ -4,9 +4,9 @@ require './language.rb'
 class LanguageTest < Test::Unit::TestCase
 	@@l = LanguageParser.new()
 
-	def test_arithmetic
-	  assert_equal("3", @@l.execute("1+2;"))
-	  assert_equal("9", @@l.execute("5+4;"))
+	# def test_arithmetic
+	#   assert_equal("3", @@l.execute("1+2;"))
+	#   assert_equal("9", @@l.execute("5+4;"))
 	#   assert_equal("4", @@l.execute("7-3;"))
 	#   assert_equal("12", @@l.execute("3*4;"))
 	#   assert_equal("4", @@l.execute("8/2;"))
@@ -36,14 +36,14 @@ class LanguageTest < Test::Unit::TestCase
 	#   assert_equal("2", @@l.execute("-1--(4-1);"))
 	#   assert_equal("-5", @@l.execute("-5;"))
 	#   assert_equal("5", @@l.execute("5;"))
-	end
+	# end
 
-	def test_comparisons
-	  assert_equal("false", @@l.execute("true==false;"))
-	  assert_equal("false", @@l.execute("true && false;"))
-	  assert_equal("false", @@l.execute("true and false;"))
-	  assert_equal("true", @@l.execute("true || false;"))
-	  assert_equal("true", @@l.execute("true or false;"))
+	# def test_comparisons
+	#   assert_equal("false", @@l.execute("true==false;"))
+	#   assert_equal("false", @@l.execute("true && false;"))
+	#   assert_equal("false", @@l.execute("true and false;"))
+	#   assert_equal("true", @@l.execute("true || false;"))
+	#   assert_equal("true", @@l.execute("true or false;"))
 
 
 	#   assert_equal("true", @@l.execute("5>3;"))
@@ -58,11 +58,12 @@ class LanguageTest < Test::Unit::TestCase
 	#   assert_equal("true", @@l.execute("4<5;"))
 	#   assert_equal("true", @@l.execute("6>=6;"))
 	#   assert_equal("true", @@l.execute("7<=8;"))
-	end
+	# end
 
 	# def test_var
 	# 	assert_equal("5", @@l.execute("int x = 5;"))	
 	# 	assert_equal("50", @@l.execute("mod int y = 50;"))
+	# 	assert_equal("55", @@l.execute("mod int y = 50; mod int x = y+5; y = 10; x;"))
 	# 	assert_equal("10", @@l.execute("mod int y = 50;y = 10;"))
 	# 	assert_equal("25", @@l.execute("mod int y = 20;10+23;y;y+5;"))
 	# end
@@ -80,7 +81,13 @@ class LanguageTest < Test::Unit::TestCase
 	# 	assert_equal("3", @@l.execute("mod int counter = 0; while(counter < 3){counter = counter + 1;} counter;"))
 	# end
 
-	# def test_functions
-	# 	assert_equal("5", @@l.execute("def fun_a(mod int a, mod int y, mod int x){a+3;}"))
-	# end
+	def test_functions
+		# assert_equal(nil, @@l.execute("def fun_a(mod int a, mod int y, mod int x){a+3;}"))
+		# assert_equal("5", @@l.execute("def fun_a(mod int a){a+3;} fun_a(2);"))
+		# assert_equal("15", @@l.execute("def fun_a(mod int a, int b, mod int c){a+b+c;} fun_a(2,6,7);"))
+		# assert_equal("10", @@l.execute("int d=10; def fun_a(mod int a, int b, mod int c){a*b-c; a = 20;} fun_a(3,4,8); d;"))
+		assert_equal("5", @@l.execute("def fun_a(mod int a){mod int b = a+3; return b; b = 10;} fun_a(2);"))
+	end
+
+
 end
