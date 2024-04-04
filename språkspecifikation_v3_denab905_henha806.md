@@ -114,6 +114,8 @@ def int fun_a(){
 }
 ```
 
+Lägg till hur man gör berökningar med floats
+
 ## BNF
 <program> ::= <scope> 
 

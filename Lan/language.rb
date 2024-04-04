@@ -17,10 +17,10 @@ class LanguageParser
             token(/\bnot\b/) {:not}
             token(/\bmod\b/) {:mod}
             token(/\bint\b/) {:int_token}
-            token(/\bfloat\b/) {:float}
+            token(/\bfloat\b/) {:float_token}
             token(/\bchar\b/) {:char_token}
-            token(/\bbool\b/) {:bool}
-            token(/\bauto\b/) {:auto}
+            token(/\bbool\b/) {:bool_token}
+            token(/\bauto\b/) {:auto_token}
             token(/\breturn\b/) {:return}
             token(/\bif\b/) {:if}
             token(/\bwhile\b/) {:while}
@@ -46,7 +46,9 @@ class LanguageParser
 
             rule :statement_list do 
                 # Fixa så att scopes kan skapas mitt i kod
-                match(:statement, :statement_list){|stm, stm_l| Node_statement_list.new(stm, stm_l)}
+                match(:statement, :statement_list){|stm, stm_l| 
+                pp "in statment"
+                Node_statement_list.new(stm, stm_l)}
                 match(:statement)
             end
 
@@ -67,17 +69,46 @@ class LanguageParser
                 match(:return, :logical_expression) {|_, expr| Node_return.new(expr)}
             end
 
-            rule :assignment do 
+            rule :assignment do
                 match(:mod, :assignment){|_, node|
                     node.remove_const()
                     node
                 }
                 match(:int_token, :variable, "=", :expression) {|_, name,_,value|
                     type = "int" # Sätt 'Type' dyamiskt 
+                    pp "in assignment--------------------------------------------------"
                     Node_assignment.new(type, name, value)
                 }
-                match(:int_token, :variable){|_, name,_,value|
-                    type = "int" # Sätt 'Type' dyamiskt 
+                match(:int_token, :variable){|_,name|
+                    type = "int" # Sätt 'Type' dyamiskt
+                    value = Node_datatype.new("0","int")
+                    Node_assignment.new(type, name, value)
+                }
+                match(:float_token, :variable, "=", :expression) {|_, name,_,value|
+                    type = "float" # Sätt 'Type' dyamiskt 
+                    Node_assignment.new(type, name, value)
+                }
+                match(:float_token, :variable){|_,name|
+                    type = "float" # Sätt 'Type' dyamiskt
+                    value = Node_datatype.new("0.0","float")
+                    Node_assignment.new(type, name, value)
+                }
+                match(:bool_token, :variable, "=", :logical_expression) {|_, name,_,value|
+                    type = "bool" # Sätt 'Type' dyamiskt 
+                    Node_assignment.new(type, name, value)
+                }
+                match(:bool_token, :variable){|_,name|
+                    type = "bool" # Sätt 'Type' dyamiskt
+                    value = Node_datatype.new("true","bool")
+                    Node_assignment.new(type, name, value)
+                }
+                match(:char_token, :variable, "=", :atom) {|_, name,_,value|
+                    type = "char" # Sätt 'Type' dyamiskt 
+                    Node_assignment.new(type, name, value)
+                }
+                match(:char_token, :variable){|_,name|
+                    type = "char" # Sätt 'Type' dyamiskt
+                    value = Node_datatype.new("a","char")
                     Node_assignment.new(type, name, value)
                 }
             end
@@ -110,9 +141,9 @@ class LanguageParser
 
             rule :function_call do
                 match(:variable, "(", :variable_list, ")") {| name, _, var_list, _|
-                Node_function_call.new(name, var_list.flatten)} 
+                    Node_function_call.new(name, var_list.flatten)} 
                 match(:variable, "(", ")"){| name, _, _|
-                Node_function_call.new(name, [])}
+                    Node_function_call.new(name, [])}
             end
 
             rule :variable_list do
@@ -122,8 +153,10 @@ class LanguageParser
 
             rule :function_def do
                 match(:def, :variable, "(", ")", "{",:statement_list, "}") {|_, name, _, _, _, stmt_list, _|
+                    pp "<---------------------------------MATCHED FUNCITON DEFINITION for function with name #{name}"
                     Node_function.new(name, [], stmt_list)}
                 match(:def, :variable, "(", :assignment_list, ")", "{",:statement_list, "}") {|_, name, _, ass_list, _, _, stmt_list, _|
+                    pp "<---------------------------------MATCHED FUNCITON DEFINITION for function with name #{name}"
                     Node_function.new(name, ass_list.flatten, stmt_list)} 
             end
 
@@ -189,7 +222,8 @@ class LanguageParser
                     m
                 }
                 match("(", :expression, ")") {|_,m,_| m }
-                match("\"", :char ,"\"") {|m| Node_datatype.new(m, "char")}
+                match("\"", :char ,"\"") {|_,m,_| Node_datatype.new(m, "char")}
+                match("\'", :char ,"\'") {|_,m,_| Node_datatype.new(m, "char")}
                 match(:bool) {|m| Node_datatype.new(m.name, "bool")}
                 match(:variable_call)
                 match(:unary)

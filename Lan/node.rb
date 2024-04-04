@@ -46,7 +46,7 @@ class Node
             end
             stack_counter -=1
         end
-        raise "Variable with the name #{name} was not found THERE"
+        raise "Function with the name #{name} was not found, function stack: #{@@function_stack[0-@@current_scope]}"
     end
 end
 
@@ -67,6 +67,8 @@ class Node_statement_list < Node
     def initialize(statement, statement_list)
         @statement = statement
         @statement_list = statement_list
+        pp "STATEMENT: #{@statement}"
+        pp "STATEMENT LIST: #{@statement_list}"
     end
 
     def evaluate()
@@ -116,6 +118,8 @@ class Node_if < Node
     
     def evaluate
         pp "Hello--------------------------------------------------------"
+        pp "STATEMENT: #{@statement}"
+        pp "STATEMENT LIST: #{@statement_list}"
         pp @expression.evaluate
         new_scope()
         
@@ -179,11 +183,12 @@ class Node_assignment < Node
     end
 
     def evaluate()
-        pp "assignment #{@@variable_stack}++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++"
-
         if @@variable_stack.any? { |hash| hash.value?(@name) }
             raise "Variable with name #{@name} already exists"
         else
+            if @value.get_type() != @type
+                raise TypeError, "Variable assignment for '#{@name}' expected a #{@type} value, but got a #{@value.get_type} value."
+            end
             @@variable_stack[@@current_scope][@name] = {"value" => @value.evaluate, "type" => @type, "const" => @const}
             return @value.evaluate
         end
@@ -205,6 +210,9 @@ class Node_re_assignment < Node
         var = look_up_var(@name)
 
         if var
+            if var["type"] != @value.get_type
+                raise TypeError, "Variable assignment for '#{@name}' expected a #{@type} value, but got a #{@value.get_type} value."
+            end
             if var["const"] == false
                 var["value"] = @value.evaluate
                 return var["value"] # <------ Return entire var?
@@ -228,29 +236,35 @@ class Node_function < Node
 
     def evaluate()
         @@function_stack[@@current_scope][@name] = self
-        #pp @@function_stack
         nil
     end
 end
 
 class Node_function_call < Node
+    attr_accessor :type
     def initialize(name, variable_list)
         @name = name
         @variable_list = variable_list
-        @type_value = nil
+        @type = nil
     end
     def get_type()
+        pp @type
         evaluate()
-        return @type_value
+        pp @type
+        return @type
     end
 
     def evaluate()
+        pp "in funciton"
+        pp @@function_stack
         fun = look_up_fun(@name)
+        pp fun.function_body
         if fun != nil
+            pp fun.function_body
             if @variable_list.size != fun.variable_list.size
                 raise "Wrong number of arguments, #{fun.name} expected #{fun.variable_list.size} arguments"
             end
-
+            pp fun.function_body
             counter = 0
             @variable_list.each do |var|
                 if var.get_type != fun.variable_list[counter].get_type
@@ -260,17 +274,17 @@ class Node_function_call < Node
                 counter = counter + 1
             end
             new_scope()
-            
+            pp fun.function_body
             fun.variable_list.each do |var|
                 var.evaluate()
             end
-
+            pp fun.function_body
             return_value = fun.function_body.evaluate
             
             if fun.function_body.is_a?(Node_return)
-                @type_value = fun.function_body.get_type
+                @type = fun.function_body.get_type
             elsif return_value.is_a?(Node_return)
-                @type_value = return_value.get_type
+                @type = return_value.get_type
                 return_value = return_value.evaluate
             else 
                 return_value = nil
@@ -284,31 +298,47 @@ class Node_function_call < Node
 end
 
 class Node_expression < Node
-    attr_accessor :operator, :lhs, :rhs
+    attr_accessor :operator, :lhs, :rhs, :type
     def initialize(lhs, operator, rhs)
         @lhs = lhs
         @operator = operator
         @rhs = rhs
+        @type = nil
     end
 
     def get_type()
-        if @lhs.get_type() == @rhs.get_type()
-            return @lhs.get_type()
+        pp @lhs, @operator, @rhs
+        if @lhs.get_type=="float" && @rhs.get_type == "int"
+            @type = "float"
+        elsif @rhs.get_type=="float" && @lhs.get_type == "int"
+            @type = "float"
+        elsif @lhs.get_type() == @rhs.get_type()
+            @type = @lhs.get_type()
         else
             raise TypeError, "#{@lhs} is not the same type as #{@rhs} in #{self}"
         end
     end
 
     def evaluate()
+
+        #  lhs_type = @lhs.evaluate.get_type()
+        #  rhs_type = @rhs.evaluate.get_type()
+
         #Fråga simon
-      
-        if @lhs.get_type() == @rhs.get_type()
+        if @lhs.get_type=="float" && @rhs.get_type == "int"
+            @rhs.type = "float"
+            return eval(@lhs.evaluate() + @operator + @rhs.evaluate() + ".0").to_s
+        elsif @rhs.get_type=="float" && @lhs.get_type == "int"
+            @lhs.type = "float"
+            return eval(@lhs.evaluate() + ".0" + @operator + @rhs.evaluate()).to_s
+        elsif @lhs.get_type() == @rhs.get_type()
             #return @lhs.evaluate(scope).send(@operator, @rhs.evaluate(scope)
             #output = eval(@lhs.evaluate() + @operator + @rhs.evaluate())
           #  pp @lhs, @operator, @rhs
+            
             return eval(@lhs.evaluate() + @operator + @rhs.evaluate()).to_s
         else
-            raise TypeError, "#{@lhs} is not the same type as #{@rhs} in #{self}"
+            raise TypeError, "#{@lhs} is not the same type as #{@rhs} in #{self} BOTTOM"
         end
     end
 end
