@@ -50,9 +50,9 @@ class LanguageParser
             end
 
             rule :statement do 
-                # match(:print, "(", "'", :variable,"'", ")", ";") {|_,_,_,var,_,_,_|pp var}
-                # match(:print, "(", :variable_call, ")", ";") {|_,_,var,_,_|pp var}
-                # match(:print, "(", :expression, ")", ";") {|_,_,exp,_,_|pp exp}
+                match(:print, "(", "'", :variable,"'", ")", ";") {|_,_,_,var,_,_,_|pp var}
+                match(:print, "(", :variable_call, ")", ";") {|_,_,var,_,_|pp var}
+                match(:print, "(", :expression, ")", ";") {|_,_,exp,_,_|pp exp}
                 match(:return_statement, ";")
                 match(:assignment, ";")
                 match(:re_assignment, ";")
@@ -146,10 +146,10 @@ class LanguageParser
             end
 
             rule :function_def do
-                match(:def, :variable, "(", ")", "{",:statement_list, "}") {|_, name, _, _, _, stmt_list, _|
-                    Node_function.new(name, [], stmt_list)}
-                match(:def, :variable, "(", :assignment_list, ")", "{",:statement_list, "}") {|_, name, _, ass_list, _, _, stmt_list, _|
-                    Node_function.new(name, ass_list.flatten, stmt_list)} 
+                match(:def, :type, :variable, "(", ")", "{",:statement_list, "}") {|_, type, name, _, _, _, stmt_list, _|
+                    Node_function.new(name, [], stmt_list, type.name.split('_')[0])}
+                match(:def, :type, :variable, "(", :assignment_list, ")", "{",:statement_list, "}") {|_, type, name, _, ass_list, _, _, stmt_list, _|
+                    Node_function.new(name, ass_list.flatten, stmt_list, type.name.split('_')[0])} 
             end
 
             rule :assignment_list do
@@ -246,10 +246,10 @@ class LanguageParser
 
             rule :type do
                 match(:int_token)
-                match(:float)
-                match(:bool)
+                match(:float_token)
+                match(:bool_token)
                 match(:char_token)
-                match(:auto)
+                match(:auto_token)
             end
 
             rule :float do

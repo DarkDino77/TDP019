@@ -27,8 +27,9 @@ class Node
     def look_up_var(name)
         stack_counter = @@variable_stack.size-1    
         @@variable_stack.reverse_each do |variables|
-            if variables.has_key?(@name)
-                temp = @@variable_stack[stack_counter][@name]
+            if variables.has_key?(name)
+
+                temp = @@variable_stack[stack_counter][name]
                 return temp
             end
             stack_counter -=1
@@ -40,8 +41,8 @@ class Node
     def look_up_fun(name)
         stack_counter = @@function_stack.size-1    
         @@function_stack.reverse_each do |variables|
-            if variables.has_key?(@name)
-                temp = @@function_stack[stack_counter][@name]
+            if variables.has_key?(name)
+                temp = @@function_stack[stack_counter][name]
                 return temp
             end
             stack_counter -=1
@@ -58,6 +59,7 @@ class Node_return < Node
         @expr.get_type
     end
     def evaluate()
+        #pp "retrun node --------------------------#{@expr.evaluate}"
         @expr.evaluate
     end
 end
@@ -70,15 +72,20 @@ class Node_statement_list < Node
     end
 
     def evaluate()
+       # pp @statement
         if @statement.is_a?(Node_return)
+            pp "statement-list variant: 1"
             return @statement
         elsif @statement_list.is_a?(Node_return)
+            pp "statement-list variant: 2"
             @statement.evaluate
             return @statement_list
         else
             if @statement.evaluate.is_a?(Node_return)
+                pp "statement-list variant: 3"
                 return @statement.evaluate
             else
+                pp "statement-list variant: 4"
                 @statement.evaluate
                 @statement_list.evaluate 
             end
@@ -153,6 +160,7 @@ class Node_variable < Node
     end
     
     def evaluate()
+        #pp look_up_var(@name)["value"]
         return look_up_var(@name)["value"]
     end
 end
@@ -215,11 +223,12 @@ class Node_re_assignment < Node
 end
 
 class Node_function < Node
-    attr_accessor :name, :variable_list, :function_body
-    def initialize(name, variable_list = [], function_body)
+    attr_accessor :name, :variable_list, :function_body, :type
+    def initialize(name, variable_list = [], function_body, type)
         @name = name
         @variable_list = variable_list 
         @function_body = function_body
+        @type = type
     end
 
     def evaluate()
@@ -235,19 +244,22 @@ class Node_function_call < Node
         @variable_list = variable_list
         @type = nil
     end
-    
+
     def get_type()
-        evaluate()
+        @type = look_up_fun(@name).type
         return @type
     end
 
     def evaluate()
+        #pp @@function_stack
         fun = look_up_fun(@name)
+        pp "++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++"
         if fun != nil
             if @variable_list.size != fun.variable_list.size
                 raise "Wrong number of arguments, #{fun.name} expected #{fun.variable_list.size} arguments"
             end
             counter = 0
+            pp "hej--------------------------------------------------------------------------------"
             @variable_list.each do |var|
                 if var.get_type != fun.variable_list[counter].get_type
                     raise "#{fun.name} expected a #{fun.variable_list[counter].get_type} at index #{counter}"
@@ -255,22 +267,29 @@ class Node_function_call < Node
                 fun.variable_list[counter].value = var
                 counter = counter + 1
             end
+
             new_scope()
+            
             fun.variable_list.each do |var|
                 var.evaluate()
             end
+            #pp @@variable_stack
+            #pp fun.variable_list
             return_value = fun.function_body.evaluate
             
             if fun.function_body.is_a?(Node_return)
-                @type = fun.function_body.get_type
+               
             elsif return_value.is_a?(Node_return)
-                @type = return_value.get_type
+                #pp return_value
+                #pp "hello---------------------------------------------, The return value is:", return_value
                 return_value = return_value.evaluate
             else 
                 return_value = "nil"
             end
             close_scope()
             #Node_datatype.new(return_value, @type_value)
+            pp "då-------------------------------------------------------------------------"
+
             return return_value
         end
         raise "The function with the name #{@name} does not exist"

@@ -170,23 +170,38 @@ class LanguageTest < Test::Unit::TestCase
 	# end
 
 	def test_recursion
-		assert_equal(5, execute("
-		mod int counter = 1;
-		def count_up(){
-			if(counter < 5){
-				counter = counter + 1;
-				count_up();
-			}
-			return counter;
-		}
-		count_up();
-		"))
+		# assert_equal(5, execute("
+		# mod int counter = 1;
+		# def count_up(){
+		# 	if(counter < 5){
+		# 		counter = counter + 1;
+		# 		count_up();
+		# 	}
+		# 	return counter;
+		# }
+		# count_up();
+		# "))
+
 		# assert_equal(120, execute("
-		#   def factorial(mod int n){
+		#   def int factorial(mod int n){
 		# 	if(n <= 1){ return 1; }
 		# 	return n * factorial(n-1); 
 		#   }
 		#   factorial(5);
+		# "))
+
+		assert_equal(8, execute("
+			def int add_5(mod int n){
+				print(n);
+				if(n >= 20){ return n; }
+				return n + add_5(n + 5); 
+			}
+			add_5(0);
+		"))
+
+		# assert_equal(nil, execute("
+		# mod int a = 20;
+		# if(a >= 20){a;}
 		# "))
 	end
 	  
