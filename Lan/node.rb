@@ -67,21 +67,15 @@ class Node_statement_list < Node
     def initialize(statement, statement_list)
         @statement = statement
         @statement_list = statement_list
-        pp "STATEMENT: #{@statement}"
-        pp "STATEMENT LIST: #{@statement_list}"
     end
 
     def evaluate()
-        #pp "hello------------------------------------------"
-        pp "STATEMENT: #{@statement}"
-        pp "STATEMENT LIST: #{@statement_list}"
         if @statement.is_a?(Node_return)
             return @statement
         elsif @statement_list.is_a?(Node_return)
             @statement.evaluate
             return @statement_list
         else
-            #pp "hello------------------------------------------"
             if @statement.evaluate.is_a?(Node_return)
                 return @statement.evaluate
             else
@@ -117,10 +111,6 @@ class Node_if < Node
     end
     
     def evaluate
-        pp "Hello--------------------------------------------------------"
-        pp "STATEMENT: #{@statement}"
-        pp "STATEMENT LIST: #{@statement_list}"
-        pp @expression.evaluate
         new_scope()
         
         if eval(@expression.evaluate)
@@ -129,12 +119,10 @@ class Node_if < Node
             if @statement_list.is_a?(Node_return)
                 return @statement_list
             end
-            # pp "RETURNING, STATMENT WAS TRUE, RETURNING: #{return_value}, THE STATEMENT LIST WAS: #{@statement_list}"
             return return_value
         end
-        pp "RETURNING, STATMENT WAS FALSE, RETURNING: nil"
         close_scope()
-        nil
+        "nil"
     end
 end
 
@@ -150,7 +138,7 @@ class Node_while < Node
             @statement_list.evaluate
         end
         close_scope()
-        nil
+        "nil"
     end
 end
 
@@ -222,7 +210,7 @@ class Node_re_assignment < Node
         else
             raise "Variable with name #{@name} not found in scope with variables: #{@@variable_stack[@@current_scope]}"
         end
-        nil
+        "nil"
     end
 end
 
@@ -236,7 +224,7 @@ class Node_function < Node
 
     def evaluate()
         @@function_stack[@@current_scope][@name] = self
-        nil
+        "nil"
     end
 end
 
@@ -247,24 +235,18 @@ class Node_function_call < Node
         @variable_list = variable_list
         @type = nil
     end
+    
     def get_type()
-        pp @type
         evaluate()
-        pp @type
         return @type
     end
 
     def evaluate()
-        pp "in funciton"
-        pp @@function_stack
         fun = look_up_fun(@name)
-        pp fun.function_body
         if fun != nil
-            pp fun.function_body
             if @variable_list.size != fun.variable_list.size
                 raise "Wrong number of arguments, #{fun.name} expected #{fun.variable_list.size} arguments"
             end
-            pp fun.function_body
             counter = 0
             @variable_list.each do |var|
                 if var.get_type != fun.variable_list[counter].get_type
@@ -274,11 +256,9 @@ class Node_function_call < Node
                 counter = counter + 1
             end
             new_scope()
-            pp fun.function_body
             fun.variable_list.each do |var|
                 var.evaluate()
             end
-            pp fun.function_body
             return_value = fun.function_body.evaluate
             
             if fun.function_body.is_a?(Node_return)
@@ -287,7 +267,7 @@ class Node_function_call < Node
                 @type = return_value.get_type
                 return_value = return_value.evaluate
             else 
-                return_value = nil
+                return_value = "nil"
             end
             close_scope()
             #Node_datatype.new(return_value, @type_value)
@@ -307,7 +287,6 @@ class Node_expression < Node
     end
 
     def get_type()
-        pp @lhs, @operator, @rhs
         if @lhs.get_type=="float" && @rhs.get_type == "int"
             @type = "float"
         elsif @rhs.get_type=="float" && @lhs.get_type == "int"
@@ -320,10 +299,6 @@ class Node_expression < Node
     end
 
     def evaluate()
-
-        #  lhs_type = @lhs.evaluate.get_type()
-        #  rhs_type = @rhs.evaluate.get_type()
-
         #Fråga simon
         if @lhs.get_type=="float" && @rhs.get_type == "int"
             @rhs.type = "float"
@@ -334,8 +309,6 @@ class Node_expression < Node
         elsif @lhs.get_type() == @rhs.get_type()
             #return @lhs.evaluate(scope).send(@operator, @rhs.evaluate(scope)
             #output = eval(@lhs.evaluate() + @operator + @rhs.evaluate())
-          #  pp @lhs, @operator, @rhs
-            
             return eval(@lhs.evaluate() + @operator + @rhs.evaluate()).to_s
         else
             raise TypeError, "#{@lhs} is not the same type as #{@rhs} in #{self} BOTTOM"

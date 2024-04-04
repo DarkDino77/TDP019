@@ -1,0 +1,23 @@
+mod int i = 0;
+def checkLimit(int a)
+{ 
+    if(a < 5) 
+    { 
+        return true; 
+    }
+      
+    if(a >= 5)
+    { 
+        return false; 
+    } 
+}
+
+while(checkLimit(i)) 
+{ 
+    i = i + 1; 
+}
+
+if(i == 5) 
+{ 
+    i; 
+} 

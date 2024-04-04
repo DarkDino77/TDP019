@@ -5,8 +5,6 @@ require './node.rb'
 class LanguageParser  
     attr_accessor :language_parser
     def initialize
-
-
         @language_parser = Parser.new("language parser") do
             token(/\s+/)
             token(/\bprint\b/) {:print}
@@ -47,14 +45,14 @@ class LanguageParser
             rule :statement_list do 
                 # Fixa så att scopes kan skapas mitt i kod
                 match(:statement, :statement_list){|stm, stm_l| 
-                pp "in statment"
-                Node_statement_list.new(stm, stm_l)}
+                    Node_statement_list.new(stm, stm_l)}
                 match(:statement)
             end
 
             rule :statement do 
-                match(:print, "(", "'", :variable,"'", ")", ";") {|_,_,_,var,_,_,_|pp var}
-                match(:print, "(", :variable_call, ")", ";") {|_,_,var,_,_|pp var}
+                # match(:print, "(", "'", :variable,"'", ")", ";") {|_,_,_,var,_,_,_|pp var}
+                # match(:print, "(", :variable_call, ")", ";") {|_,_,var,_,_|pp var}
+                # match(:print, "(", :expression, ")", ";") {|_,_,exp,_,_|pp exp}
                 match(:return_statement, ";")
                 match(:assignment, ";")
                 match(:re_assignment, ";")
@@ -76,7 +74,6 @@ class LanguageParser
                 }
                 match(:int_token, :variable, "=", :expression) {|_, name,_,value|
                     type = "int" # Sätt 'Type' dyamiskt 
-                    pp "in assignment--------------------------------------------------"
                     Node_assignment.new(type, name, value)
                 }
                 match(:int_token, :variable){|_,name|
@@ -108,7 +105,7 @@ class LanguageParser
                 }
                 match(:char_token, :variable){|_,name|
                     type = "char" # Sätt 'Type' dyamiskt
-                    value = Node_datatype.new("a","char")
+                    value = Node_datatype.new("'a'","char")
                     Node_assignment.new(type, name, value)
                 }
             end
@@ -126,18 +123,15 @@ class LanguageParser
 
             rule :if_expression do
                 match(:if , "(", :logical_expression, ")", "{",:statement_list,"}") {|_,_,expression,_,_,scope,_|
-                 Node_if.new(expression, scope)
-                 
+                    Node_if.new(expression, scope)
                 }
             end
 
             rule :while_expression do
                 match(:while , "(", :logical_expression, ")", "{",:statement_list,"}") {|_,_,expression,_,_,scope,_|
                     Node_while.new(expression, scope)
-                   
                 }
             end 
-            # a(5,6,7)
 
             rule :function_call do
                 match(:variable, "(", :variable_list, ")") {| name, _, var_list, _|
@@ -153,10 +147,8 @@ class LanguageParser
 
             rule :function_def do
                 match(:def, :variable, "(", ")", "{",:statement_list, "}") {|_, name, _, _, _, stmt_list, _|
-                    pp "<---------------------------------MATCHED FUNCITON DEFINITION for function with name #{name}"
                     Node_function.new(name, [], stmt_list)}
                 match(:def, :variable, "(", :assignment_list, ")", "{",:statement_list, "}") {|_, name, _, ass_list, _, _, stmt_list, _|
-                    pp "<---------------------------------MATCHED FUNCITON DEFINITION for function with name #{name}"
                     Node_function.new(name, ass_list.flatten, stmt_list)} 
             end
 
@@ -222,8 +214,8 @@ class LanguageParser
                     m
                 }
                 match("(", :expression, ")") {|_,m,_| m }
-                match("\"", :char ,"\"") {|_,m,_| Node_datatype.new(m, "char")}
-                match("\'", :char ,"\'") {|_,m,_| Node_datatype.new(m, "char")}
+                match("\"", :char ,"\"") {|_,m,_| Node_datatype.new("'"+m+"'", "char")}
+                match("\'", :char ,"\'") {|_,m,_| Node_datatype.new("'"+m+"'", "char")}
                 match(:bool) {|m| Node_datatype.new(m.name, "bool")}
                 match(:variable_call)
                 match(:unary)
@@ -284,43 +276,9 @@ class LanguageParser
             end
         end
     end
-    
-    def done(str)
-        ["quit","exit","bye","done",""].include?(str.chomp)
-    end
-
-    def read_file(filename)
-        file = IO.readlines(filename, chomp: true)
-        file = file.join(" ")
-    
-        parse_code(file)
-    end
-
-    def parse_code(data)
-        return @language_parser.parse(data)
-        # pp parsed
-    end
-
-    def execute(data)
-        if done(data)
-            pass
-        else
-            output=parse_code(data)
-            # pp output
-            return output
-        end
-    end
-    
-    def log(state = true)
-        if state
-            @diceParser.logger.level = Logger::DEBUG
-        else
-            @diceParser.logger.level = Logger::WARN
-        end
-    end
 end
 
-l = LanguageParser.new()
-#pp l.read_file("test_program.gph")
-#l.roll()
+# l = LanguageParser.new()
+# l.read_file("test2.gph")
+# l.roll()
 
