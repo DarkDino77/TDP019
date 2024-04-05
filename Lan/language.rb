@@ -46,7 +46,7 @@ class LanguageParser
                 # Fixa så att scopes kan skapas mitt i kod
                 match(:statement, :statement_list){|stm, stm_l| 
                     Node_statement_list.new(stm, stm_l)}
-                match(:statement)
+                match(:statement) {|stm| Node_statement_list.new(stm)}
             end
 
             rule :statement do 
@@ -72,6 +72,16 @@ class LanguageParser
                     node.remove_const()
                     node
                 }
+
+                match(:array, :variable, "=",:array_list){|type, name, _, arr_list|
+                arr_list.update_type(type)
+                Node_assignment.new(type, name, arr_list)
+                }
+
+                match(:array, :variable) {|type, name|
+                    Node_assignment.new(type, name, Node_array.new(type, []))
+                }
+
                 match(:int_token, :variable, "=", :expression) {|_, name,_,value|
                     type = "int" # Sätt 'Type' dyamiskt 
                     Node_assignment.new(type, name, value)
@@ -133,6 +143,16 @@ class LanguageParser
                 }
             end 
 
+            rule :array_list do
+                match("[", :variable_list, "]") {|_,m,_| Node_array.new(nil, m.flatten)}
+                match("[", "]") {|_,_| Node_array.new(nil, [])}
+            end
+
+            # rule :array_item do
+            #     match(:array_item, ",", :logical_expression)
+            #     match(:logical_expression)
+            # end
+
             rule :function_call do
                 match(:variable, "(", :variable_list, ")") {| name, _, var_list, _|
                     Node_function_call.new(name, var_list.flatten)} 
@@ -146,10 +166,14 @@ class LanguageParser
             end
 
             rule :function_def do
+                match(:def, :array, :variable, "(", ")", "{",:statement_list, "}") {|_, type, name, _, _, _, stmt_list, _|
+                    Node_function.new(name, [], stmt_list, type)}
+                match(:def, :array, :variable, "(", :assignment_list, ")", "{",:statement_list, "}") {|_, type, name, _, ass_list, _, _, stmt_list, _|
+                    Node_function.new(name, ass_list.flatten, stmt_list, type)} 
                 match(:def, :type, :variable, "(", ")", "{",:statement_list, "}") {|_, type, name, _, _, _, stmt_list, _|
-                    Node_function.new(name, [], stmt_list, type.name.split('_')[0])}
+                    Node_function.new(name, [], stmt_list, type.name.split('_')[0])} # KANSKE FLYTTA SPLIT
                 match(:def, :type, :variable, "(", :assignment_list, ")", "{",:statement_list, "}") {|_, type, name, _, ass_list, _, _, stmt_list, _|
-                    Node_function.new(name, ass_list.flatten, stmt_list, type.name.split('_')[0])} 
+                    Node_function.new(name, ass_list.flatten, stmt_list, type.name.split('_')[0])}
             end
 
             rule :assignment_list do
@@ -207,6 +231,7 @@ class LanguageParser
             end
             
             rule :atom do
+                match(:array_list)
                 match(:function_call)
                 match("-", "(", :expression, ")") {|_,_,m,_| 
                     m.lhs.value = "-" + m.lhs.value
@@ -219,6 +244,7 @@ class LanguageParser
                 match(:bool) {|m| Node_datatype.new(m.name, "bool")}
                 match(:variable_call)
                 match(:unary)
+
             end
             
             rule :unary do
@@ -241,7 +267,7 @@ class LanguageParser
             end
 
             rule :array do
-                match(:type, "[", "]")
+                match(:type, "[", "]"){|type| "array_"+type.name.split('_')[0]}
             end
 
             rule :type do

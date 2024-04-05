@@ -66,32 +66,28 @@ end
 
 
 class Node_statement_list < Node
-    def initialize(statement, statement_list)
+    def initialize(statement, statement_list = nil)
         @statement = statement
         @statement_list = statement_list
     end
 
     def evaluate()
        # pp @statement
-        if @statement.is_a?(Node_return)
-            pp "statement-list variant: 1"
-            return @statement
-        elsif @statement_list.is_a?(Node_return)
-            pp "statement-list variant: 2"
-            @statement.evaluate
-            return @statement_list
-        else
-            if @statement.evaluate.is_a?(Node_return)
-                pp "statement-list variant: 3"
-                return @statement.evaluate
-            else
-                pp "statement-list variant: 4"
-                @statement.evaluate
-                @statement_list.evaluate 
-            end
-        end
-    end
 
+        return_value = @statement.evaluate()
+        pp return_value
+        if @statement.is_a?(Node_return)
+            return @statement
+        elsif return_value.is_a?(Node_return)
+            return return_value
+        end
+
+        if @statement_list != nil
+            return_value = @statement_list.evaluate()
+        end
+
+        return return_value
+    end
 end
 
 
@@ -111,6 +107,41 @@ class Node_datatype < Node
     end
 end
 
+class Node_array < Node
+    attr_accessor :values
+    def initialize(type, values)
+        @type = type
+        @values = values
+    end
+
+    def get_type
+        return @type
+    end
+
+    def evaluate()
+        # Kontrollera att alla värden är av rätt typ
+        output = []
+        pp @values, @type
+        @values.each do |m|
+            if m.is_a?(Node_array) && m.get_type == nil
+                m.update_type("array_"+m.values[0].get_type)
+            end
+
+            if m.get_type != @type  
+                if m.get_type() != @type.split("_")[1]
+                    raise TypeError, "Array expected #{@type.split("_")[1]} but got a #{m.get_type()}"
+                end
+            end
+            output << eval(m.evaluate)
+        end
+        return output.to_s
+    end
+
+    def update_type(type)
+        @type = type
+    end
+end
+
 class Node_if < Node
     def initialize(expression, statement_list)
         @expression = expression
@@ -124,6 +155,7 @@ class Node_if < Node
             return_value = @statement_list.evaluate()
             close_scope()
             if @statement_list.is_a?(Node_return)
+                pp "Statement list was a returnc"
                 return @statement_list
             end
             return return_value
@@ -275,8 +307,9 @@ class Node_function_call < Node
             end
             #pp @@variable_stack
             #pp fun.variable_list
+
             return_value = fun.function_body.evaluate
-            
+            pp return_value
             if fun.function_body.is_a?(Node_return)
                
             elsif return_value.is_a?(Node_return)

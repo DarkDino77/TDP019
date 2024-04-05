@@ -1,1 +1,4 @@
-- Print
+[] Print
+[] ta bort returtyper ELLER specifiera en void-returtyp
+[] Array funktioner (add, remove, get/change)
+[] int_token ska returnera "int"
