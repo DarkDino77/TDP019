@@ -7,6 +7,8 @@ class LanguageParser
     def initialize
         @language_parser = Parser.new("language parser") do
             token(/\s+/)
+            token(/\badd\b/) {:add}
+            token(/\bremove\b/) {:remove}
             token(/\bprint\b/) {:print}
             token(/\btrue\b/) {:true}
             token(/\bfalse\b/) {:false}
@@ -23,9 +25,6 @@ class LanguageParser
             token(/\bif\b/) {:if}
             token(/\bwhile\b/) {:while}
             token(/\bdef\b/) {:def}
-
-            # token(/\{/) {:statement_list_start_symbol}
-            # token(/\}/) {:statement_list_end_symbol}
 
             token(/(?<![\w-])\d(?![\w-])/) {|m| m } #behövs?
             token(/(?<![\w-])[a-zA-Z_](?![\w-])/) {|m| m } #behövs?
@@ -54,6 +53,7 @@ class LanguageParser
                 match(:print, "(", :variable_call, ")", ";") {|_,_,var,_,_|pp var}
                 match(:print, "(", :expression, ")", ";") {|_,_,exp,_,_|pp exp}
                 match(:return_statement, ";")
+                match(:array_function, ";")
                 match(:assignment, ";")
                 match(:re_assignment, ";")
                 match(:control)
@@ -65,6 +65,15 @@ class LanguageParser
             
             rule :return_statement do
                 match(:return, :logical_expression) {|_, expr| Node_return.new(expr)}
+            end
+
+            rule :array_function do
+                match(:variable,"." ,:add,"(",:variable_list,")"){|name,_,_,_,var,_|
+                    Node_array_add.new(name,var.flatten)}
+                match(:variable,"." ,:remove,"(",:expression,")"){|name,_,_,_,index,_|
+                    Node_array_remove.new(name, index)}
+                match(:variable,"." ,:remove,"(",")"){|name,_,_,_,_|
+                    Node_array_remove.new(name)}
             end
 
             rule :assignment do
@@ -147,11 +156,6 @@ class LanguageParser
                 match("[", :variable_list, "]") {|_,m,_| Node_array.new(nil, m.flatten)}
                 match("[", "]") {|_,_| Node_array.new(nil, [])}
             end
-
-            # rule :array_item do
-            #     match(:array_item, ",", :logical_expression)
-            #     match(:logical_expression)
-            # end
 
             rule :function_call do
                 match(:variable, "(", :variable_list, ")") {| name, _, var_list, _|
@@ -256,7 +260,8 @@ class LanguageParser
            
 
             rule :variable_call do
-                match(:variable, "[", :int ,"]")
+                match(:variable,"[", :expression, "]"){|name,_,index,_|
+                    Node_array_accessor.new(name, index)}
                 match(:variable) {|m| Node_variable.new(m)}
             end
 

@@ -75,7 +75,6 @@ class Node_statement_list < Node
        # pp @statement
 
         return_value = @statement.evaluate()
-        pp return_value
         if @statement.is_a?(Node_return)
             return @statement
         elsif return_value.is_a?(Node_return)
@@ -107,6 +106,105 @@ class Node_datatype < Node
     end
 end
 
+class Node_array_add < Node
+    def initialize(name, var)
+        @name = name
+        @var = var
+    end
+
+    def evaluate()
+        target_array = look_up_var(@name)
+
+        if target_array["type"].include?("array")
+            if target_array["const"] == false
+                # pp "HELLO"
+                @var.each do |m|
+                    if m.get_type == nil || target_array["type"].include?(m.get_type)
+                        current_value = eval(target_array["value"])
+                        # pp "BYE"
+                        current_value << eval(m.evaluate)
+                        
+                        target_array["value"] = current_value.to_s
+                    else
+                        raise TypeError, "Array expected #{target_array["type"].split("_")[1]} but got a #{m.get_type()}"
+                    end
+                end                
+            else
+                raise "Variable with name #{@name} is const"
+            end
+        else
+            raise TypeError, "Variable with the name #{@name} is not a Array"
+        end
+        return target_array["value"]
+    end
+end
+
+class Node_array_remove < Node
+    def initialize(name, index = "nil")
+        @name = name
+        @index = index
+    end
+    
+    def evaluate()
+        target_array = look_up_var(@name)
+        return_value = "nil"
+        
+
+        if target_array["type"].include?("array")
+            if target_array["const"] == false
+
+                if @index != "nil"
+                    index = eval(@index.evaluate)
+                    if index <= eval(target_array["value"]).size-1 && index >= 0 
+                        return_value = remove_index(target_array, index)
+                    else
+                        raise IndexError, "outofrange"
+                    end
+                else
+                    return_value = remove_index(target_array, eval(target_array["value"]).size-1)
+                end
+            else
+                raise "Variable with name #{@name} is const"
+            end
+        else
+            raise TypeError, "Variable with the name #{@name} is not a Array"
+        end
+        
+        return return_value.to_s
+    end
+
+    def remove_index(target_array, index)
+        current_value = eval(target_array["value"])
+        return_value = current_value[index]
+        current_value.delete_at(index)
+        target_array["value"] = current_value.to_s
+        return return_value
+    end
+end
+
+class Node_array_accessor < Node
+    def initialize(name, index)
+        @name = name
+        @index = index
+    end
+
+    def evaluate()
+        target_array = look_up_var(@name)
+        return_value = "nil"
+        index = eval(@index.evaluate)
+        if target_array["type"].include?("array")
+            if index <= eval(target_array["value"]).size-1 && index >= 0 
+                return_value = eval(target_array["value"])[index]
+            else
+                raise IndexError, "outofrange"
+            end
+        else
+            raise TypeError, "Variable with the name #{@name} is not a Array"
+        end
+        return return_value.to_s
+    end
+end
+
 class Node_array < Node
     attr_accessor :values
     def initialize(type, values)
@@ -121,12 +219,13 @@ class Node_array < Node
     def evaluate()
         # Kontrollera att alla värden är av rätt typ
         output = []
-        pp @values, @type
         @values.each do |m|
             if m.is_a?(Node_array) && m.get_type == nil
                 m.update_type("array_"+m.values[0].get_type)
             end
-
+            if @type === nil
+                update_type("array_"+m.get_type)
+            end
             if m.get_type != @type  
                 if m.get_type() != @type.split("_")[1]
                     raise TypeError, "Array expected #{@type.split("_")[1]} but got a #{m.get_type()}"
@@ -155,7 +254,6 @@ class Node_if < Node
             return_value = @statement_list.evaluate()
             close_scope()
             if @statement_list.is_a?(Node_return)
-                pp "Statement list was a returnc"
                 return @statement_list
             end
             return return_value
@@ -285,13 +383,11 @@ class Node_function_call < Node
     def evaluate()
         #pp @@function_stack
         fun = look_up_fun(@name)
-        pp "++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++"
         if fun != nil
             if @variable_list.size != fun.variable_list.size
                 raise "Wrong number of arguments, #{fun.name} expected #{fun.variable_list.size} arguments"
             end
             counter = 0
-            pp "hej--------------------------------------------------------------------------------"
             @variable_list.each do |var|
                 if var.get_type != fun.variable_list[counter].get_type
                     raise "#{fun.name} expected a #{fun.variable_list[counter].get_type} at index #{counter}"
@@ -309,7 +405,6 @@ class Node_function_call < Node
             #pp fun.variable_list
 
             return_value = fun.function_body.evaluate
-            pp return_value
             if fun.function_body.is_a?(Node_return)
                
             elsif return_value.is_a?(Node_return)
@@ -321,7 +416,6 @@ class Node_function_call < Node
             end
             close_scope()
             #Node_datatype.new(return_value, @type_value)
-            pp "då-------------------------------------------------------------------------"
 
             return return_value
         end
