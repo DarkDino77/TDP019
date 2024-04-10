@@ -2,6 +2,7 @@
 require './language.rb'
 
 $l = LanguageParser.new()
+$parse_times = []
 
 def done(str)
     ["quit","exit","bye","done",""].include?(str.chomp)
@@ -15,7 +16,13 @@ def read_file(filename)
 end
 
 def parse_code(data)
-    return eval($l.language_parser.parse(data))
+    time1 = Time.now
+    return_value = eval($l.language_parser.parse(data))
+    time2 = Time.now
+    elapsed_time = time2 - time1
+    puts "Parse time: #{elapsed_time} seconds"
+    $parse_times << elapsed_time
+    return return_value
 end
 
 def execute(data)
@@ -23,6 +30,7 @@ def execute(data)
         pass
     else
         output=parse_code(data)
+        puts("Max parse time: #{$parse_times.max()}")
         return output
     end
 end

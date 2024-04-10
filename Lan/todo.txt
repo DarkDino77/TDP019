@@ -3,3 +3,12 @@
 [x] Array funktioner (add, remove, get/change)
 [ ] int_token ska returnera "int"
 [ ] Fixa chars 
+
+[x] Auto
+[ ] Inget krav på returtyper för funktioner
+[ ] Scopes { }
+[ ] Fixa strings om vi orkar
+[ ] Uppdatera BNF
+[ ] Slipa på koden + skriva tester 
+        get_type till node?
+[ ] Fixa chars

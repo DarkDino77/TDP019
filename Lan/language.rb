@@ -26,8 +26,8 @@ class LanguageParser
             token(/\bwhile\b/) {:while}
             token(/\bdef\b/) {:def}
 
-            token(/(?<![\w-])\d(?![\w-])/) {|m| m } #behövs?
-            token(/(?<![\w-])[a-zA-Z_](?![\w-])/) {|m| m } #behövs?
+            token(/(?<![\w-])\d(?![\w-])/) {|m| m } # behövs?
+            token(/(?<![\w-])[a-zA-Z_](?![\w-])/) {|m| m } # behövs?
             token(/\A(==|<=|>=|!=|\*\*)/) {|m|  m}
             token(/\A!/) {:not}
 
@@ -37,7 +37,13 @@ class LanguageParser
                 match(:statement_list) do |m|        
                     pp "============================[NODE TREE]============================", m, 
                     "==================================================================="
-                    m.evaluate
+                    time1 = Time.now
+                    return_value = m.evaluate
+                    time2 = Time.now
+                    elapsed_time = time2 - time1
+                    puts "Evaluation time: #{elapsed_time} seconds"
+
+                    return_value
                 end
             end
 
@@ -81,6 +87,14 @@ class LanguageParser
                     node.remove_const()
                     node
                 }
+
+                match(:auto_token, :variable, "=", :logical_expression){|_,name,_,value|
+                    Node_auto_assignment.new(name, value)
+                }
+                
+                # match(:auto_token, :variable, "=",:array_list){|_, name, _, arr_list|
+                #     Node_auto_assignment.new(name, arr_list)
+                # }
 
                 match(:array, :variable, "=",:array_list){|type, name, _, arr_list|
                 arr_list.update_type(type)
@@ -249,7 +263,7 @@ class LanguageParser
                 match(:variable_call)
                 match(:unary)
 
-            end
+            end       
             
             rule :unary do
                 match("-", :float){|_, m| Node_datatype.new("-" + m, "float")}

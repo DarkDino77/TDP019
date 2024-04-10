@@ -1,5 +1,5 @@
 mod int i = 0;
-def checkLimit(int a)
+def bool checkLimit(int a)
 { 
     if(a < 5) 
     { 

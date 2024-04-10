@@ -1,92 +1,121 @@
-<program> ::= <scope> 
+<program> ::= <statement-list>
 
-<scope> ::= <operation> | <operation> <scope> | { <scope> }
+<statement-list> ::= <statement> <statement-list> | <statement>
 
-<operation> ::= <assignment> 
-              | <control> 
-              | <function-call> 
-              | <function-def> 
-              | return <logical-expression>;
-              | <logical-expression>
-              | <variable-call>  
-              
+<statement> ::= <return-statement> ;
+               | <array-function> ;
+               | <assignment> ;
+               | <re-assignment> ;
+               | <control>
+               | <function-call> ;
+               | <function-def>
+               | <logical-expression> ;
+               | <variable-call> ;
 
-<!------------Tilldelning------------>
-<assignment> ::= mod <assignment>;
-               | auto <variable> = <logical-expresion>;
-               | <array> <variable> = [<variable-list>];
-               | <array> <variable> = [];
-               | <array> <variable>;
-               | int <variable> = <expresion>; 
-               | int <variable>;
-               | float <variable> = <expresion>;
-               | float <variable>;
-               | char <variable> = <varible-call>; 
-               | char <variable>;
-               | bool <variable> = <logical-expresion>;
-               | bool <variable>;
-               
+<return-statement> ::= return <logical-expression>
 
-<!------------Kontrollstrukturer------------>
+<array-function> ::= <variable> . add ( <variable-list> )
+                   | <variable> . remove ( <expression> )
+                   | <variable> . remove ( )
+
+<assignment> ::= mod <assignment>
+               | auto <variable> = <logical-expression>
+               | <array> <variable> = <array-list>
+               | <array> <variable>
+               | <int-token> <variable> = <expression>
+               | <int-token> <variable>
+               | <float-token> <variable> = <expression>
+               | <float-token> <variable>
+               | <bool-token> <variable> = <logical-expression>
+               | <bool-token> <variable>
+               | <char-token> <variable> = <atom>
+               | <char-token> <variable>
+
+<re-assignment> ::= <variable> = <logical-expression>
+
 <control> ::= <if-expression> | <while-expression>
-<if-expression> ::= if ( <logical-expression> ) { <scope> }
-<while-expression> ::= while ( <logical-expression> ) { <scope> }
 
-<!------------Funktioner------------>
-<assignment-list> ::= <assignment> | <assignment> , <assignment-list>
+<if-expression> ::= if ( <logical-expression> ) { <statement-list> }
 
-<function-def> ::= def <function-call> { <scope> }
+<while-expression> ::= while ( <logical-expression> ) { <statement-list> }
 
-<function-call> ::= <variable> () | <variable> ( <variable-list>)
+<array-list> ::= [ <variable-list> ] | [ ]
 
+<function-call> ::= <variable> ( <variable-list> ) | <variable> ( )
 
-<!------------Logiska operationer------------>
-<logical-expression> ::= <logical-term> || <logical-expression> 
-                       | <logical-term> or <logical-expression> 
+<variable-list> ::= <logical-expression> , <variable-list> | <logical-expression>
+
+<function-def> ::= def <type> <variable> ( ) { <statement-list> }
+                 | def <type> <variable> ( <assignment-list> ) { <statement-list> }
+
+<assignment-list> ::= <assignment> , <assignment-list> | <assignment>
+
+<logical-expression> ::= <logical-term> <or-operators> <logical-expression> 
                        | <logical-term>
 
-<logical-term> ::= <logical-factor> && <logical-term> 
-                 | <logical-factor> and <logical-term> 
+<or-operators> ::= || | or
+
+<logical-term> ::= <logical-factor> <and-operators> <logical-term> 
                  | <logical-factor>
 
-<logical-factor> ::= ! <logical-factor> 
-                   | not <logical-factor> 
-                   | <comparison-expression> 
+<and-operators> ::= && | and
+
+<logical-factor> ::= <not-operators> <logical-factor> 
+                   | <comparison-expression>
+
+<not-operators> ::= ! | not
 
 <comparison-expression> ::= <expression> <comparison-operator> <expression>
                           | <expression>
-                
-<comparison-operator> ::= < | > | <= | => | != | ==
 
-<!------------Metematiska operationer------------>
+<comparison-operator> ::= < | > | <= | >= | != | ==
+
 <expression> ::= <term> + <expression>
-               | <term> - <epxression>
+               | <expression> - <term>
                | <term>
 
 <term> ::= <factor> * <term>
          | <factor> / <term>
          | <factor>
 
-<factor> ::= <atom> ** <factor> 
+<factor> ::= <atom> ** <factor>
            | <atom> % <factor>
            | <atom>
 
 <atom> ::= ( <expression> )
+         | - ( <expression> )
+         | <function-call>
          | <variable-call>
-         | <float>
-         | <int> 
+         | <array-list>
+         | " <char> "
+         | ' <char> '
+         | <bool>
+         | <unary>
 
-<variable-call> ::= <variable> | <variable> [ <int> ]
+<unary> ::= - <float>
+          | <float>
+          | - <int>
+          | <int>
 
-<variable> ::= <char> | <char><variable> | <variable><digit>
+<variable-call> ::= <variable> [ <expression> ]
+                   | <variable>
 
-<array> ::= <type>[]
+<variable> ::= <char> <variable>
+             | <variable> <digit>
+             | <char>
 
-<type> ::= int | float | bool | char | auto
+<array> ::= <type> []
 
-<float> ::=  <int>.<int>
-<int> ::= <digit> | <digit><int>
+<type> ::= int-token | float-token | bool-token | char-token | auto-token
+
+<float> ::= <int> . <int>
+          | . <int>
+
+<int> ::= <digit> <int>
+         | <digit>
+
 <bool> ::= true | false
-<digit> ::= 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9
-<char> ::= 'a' ... 'z' | 'A' ... 'Z'
 
+<digit> ::= 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9
+
+<char> ::= a ... z | A ... Z | _

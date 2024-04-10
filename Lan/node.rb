@@ -1,9 +1,5 @@
 #!/usr/bin/env ruby
 
-# --------------------- SCOPE --------------------------
-
-# ---------------------- NODE ---------------------------
-
 class Node
     @@variable_stack = [{}]
     @@function_stack = [{}]
@@ -24,7 +20,6 @@ class Node
         @@current_scope -= 1
     end
 
-    # looks up wheter the variable exists in the current scope or any parrent scope
     def look_up_var(name)
         stack_counter = @@variable_stack.size-1    
         @@variable_stack.reverse_each do |variables|
@@ -60,7 +55,6 @@ class Node_return < Node
         @expr.get_type
     end
     def evaluate()
-        #pp "retrun node --------------------------#{@expr.evaluate}"
         @expr.evaluate
     end
 end
@@ -73,8 +67,6 @@ class Node_statement_list < Node
     end
 
     def evaluate()
-       # pp @statement
-
         return_value = @statement.evaluate()
         if @statement.is_a?(Node_return)
             return @statement
@@ -103,7 +95,6 @@ class Node_datatype < Node
     end
 
     def evaluate()
-       # pp @value
         return @value
     end
 end
@@ -119,18 +110,9 @@ class Node_array_add < Node
 
         if target_array["type"].include?("array")
             if target_array["const"] == false
-                # pp "HELLO"
                 @var.each do |m|
                     if m.get_type == nil || target_array["type"].include?(m.get_type)
                         current_value = eval(target_array["value"])
-                        # pp "BYE"
-                        # pp target_array["type"].include?("char")
-                        # pp "hello"
-                        # pp m
-                        # pp m.evaluate
-                        # pp eval(m.evaluate)
-                        # pp "då"
-                        #current_value << (target_array["type"].include?("char") ? m.evaluate : eval(m.evaluate))
                         current_value << eval(m.evaluate)
                         target_array["value"] = current_value.to_s
                     else
@@ -155,7 +137,6 @@ class Node_array_remove < Node
     
     def evaluate()
         target_array = look_up_var(@name)
-       # pp target_array
         return_value = "nil"
         
 
@@ -227,9 +208,7 @@ class Node_array < Node
     end
 
     def evaluate()
-        # Kontrollera att alla värden är av rätt typ
         output = []
-        #pp @values
         @values.each do |m|
             if m.is_a?(Node_array) && m.get_type == nil
                 m.update_type("array_"+m.values[0].get_type)
@@ -242,12 +221,7 @@ class Node_array < Node
                     raise TypeError, "Array expected #{@type.split("_")[1]} but got a #{m.get_type()}"
                 end
             end
-
-            #pp "HERE: #{eval(m.evaluate)}"
-            ##output << (@type.include?("char") ? m.evaluate : eval(m.evaluate))
             output << eval(m.evaluate)
-            # pp m
-            # pp output
         end
         return output.to_s
     end
@@ -306,8 +280,6 @@ class Node_variable < Node
     end
     
     def evaluate()
-        #pp " current stack: #{@@variable_stack}"
-        #pp look_up_var(@name)["value"]
         return look_up_var(@name)["value"]
     end
 end
@@ -326,7 +298,6 @@ class Node_assignment < Node
     end
 
     def evaluate()
-       # pp @value
         if @@variable_stack.any? { |hash| hash.value?(@name) }
             raise "Variable with name #{@name} already exists"
         else
@@ -340,6 +311,23 @@ class Node_assignment < Node
     
     def remove_const()
         @const = false
+    end
+end
+
+class Node_auto_assignment < Node_assignment
+    def initialize(name, value)
+        @name = name
+        @value = value
+        @type = "nil"
+        @const = true
+    end
+
+    def evaluate
+        if @value.get_type == nil 
+            @value.evaluate
+        end
+        @type = @value.get_type
+        super
     end
 end
 
@@ -359,7 +347,7 @@ class Node_re_assignment < Node
             end
             if var["const"] == false
                 var["value"] = @value.evaluate
-                return var["value"] # <------ Return entire var?
+                return var["value"]
             else
                 raise "Variable with name #{@name} is const"
             end
@@ -399,7 +387,6 @@ class Node_function_call < Node
     end
 
     def evaluate()
-        #pp @@function_stack
         fun = look_up_fun(@name)
         if fun != nil
             if @variable_list.size != fun.variable_list.size
@@ -419,21 +406,16 @@ class Node_function_call < Node
             fun.variable_list.each do |var|
                 var.evaluate()
             end
-            #pp @@variable_stack
-            #pp fun.variable_list
 
             return_value = fun.function_body.evaluate
             if fun.function_body.is_a?(Node_return)
                
             elsif return_value.is_a?(Node_return)
-                #pp return_value
-                #pp "hello---------------------------------------------, The return value is:", return_value
                 return_value = return_value.evaluate
             else 
                 return_value = "nil"
             end
             close_scope()
-            #Node_datatype.new(return_value, @type_value)
 
             return return_value
         end
@@ -463,7 +445,6 @@ class Node_expression < Node
     end
 
     def evaluate()
-        #Fråga simon
         if @lhs.get_type=="float" && @rhs.get_type == "int"
             @rhs.type = "float"
             return eval(@lhs.evaluate() + @operator + @rhs.evaluate() + ".0").to_s
@@ -471,8 +452,6 @@ class Node_expression < Node
             @lhs.type = "float"
             return eval(@lhs.evaluate() + ".0" + @operator + @rhs.evaluate()).to_s
         elsif @lhs.get_type() == @rhs.get_type()
-            #return @lhs.evaluate(scope).send(@operator, @rhs.evaluate(scope)
-            #output = eval(@lhs.evaluate() + @operator + @rhs.evaluate())
             return eval(@lhs.evaluate() + @operator + @rhs.evaluate()).to_s
         else
             raise TypeError, "#{@lhs} is not the same type as #{@rhs} in #{self} BOTTOM"
