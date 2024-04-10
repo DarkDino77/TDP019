@@ -30,7 +30,8 @@ def execute(data)
         pass
     else
         output=parse_code(data)
-        puts("Max parse time: #{$parse_times.max()}")
+        puts("Max parse time: #{$parse_times.max()} seconds")
+        puts "===========================================================================\n\n"
         return output
     end
 end
@@ -59,6 +60,16 @@ input_array = ARGV
 
 if input_array.size == 1
     if input_array[0] == "gph"
+        puts "
+  _____                 _     _ _       
+ / ____|               | |   (_) |      
+| |  __ _ __ __ _ _ __ | |__  _| |_ ___ 
+| | |_ | '__/ _` | '_ \\| '_ \\| | __/ _ \\
+| |__| | | | (_| | |_) | | | | | ||  __/ 
+ \\_____|_|  \\__,_| .__/|_| |_|_|\\__\\___|
+                 | |                    
+                 |_|                    
+        "
         read_code
     else
         read_file(input_array[0])

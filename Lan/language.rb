@@ -35,8 +35,9 @@ class LanguageParser
 
             start :program do
                 match(:statement_list) do |m|        
-                    pp "============================[NODE TREE]============================", m, 
-                    "==================================================================="
+                    puts "================================[NODE TREE]================================"
+                    pp m 
+                    puts "\n"
                     time1 = Time.now
                     return_value = m.evaluate
                     time2 = Time.now
@@ -67,8 +68,16 @@ class LanguageParser
                 match(:function_def)
                 match(:logical_expression, ";")
                 match(:variable_call, ";")
+                match(:standalone_scope)
             end
             
+            rule :standalone_scope do
+                match("{",:statement_list,"}"){|_,stmt,_|
+                Node_standalone_scope.new(stmt)
+            }    
+            
+            end
+
             rule :return_statement do
                 match(:return, :logical_expression) {|_, expr| Node_return.new(expr)}
             end
@@ -167,8 +176,8 @@ class LanguageParser
             end 
 
             rule :array_list do
-                match("[", :variable_list, "]") {|_,m,_| Node_array.new(nil, m.flatten)}
-                match("[", "]") {|_,_| Node_array.new(nil, [])}
+                match("[", :variable_list, "]") {|_,m,_| Node_array.new("nil", m.flatten)}
+                match("[", "]") {|_,_| Node_array.new("nil", [])}
             end
 
             rule :function_call do
@@ -192,13 +201,16 @@ class LanguageParser
                     Node_function.new(name, [], stmt_list, type.name.split('_')[0])} # KANSKE FLYTTA SPLIT
                 match(:def, :type, :variable, "(", :assignment_list, ")", "{",:statement_list, "}") {|_, type, name, _, ass_list, _, _, stmt_list, _|
                     Node_function.new(name, ass_list.flatten, stmt_list, type.name.split('_')[0])}
+                match(:def,:variable, "(", ")", "{",:statement_list, "}") {|_, name, _, _, _, stmt_list, _|
+                    Node_function.new(name, [], stmt_list)} # KANSKE FLYTTA SPLIT
+                match(:def,  :variable, "(", :assignment_list, ")", "{",:statement_list, "}") {|_, name, _, ass_list, _, _, stmt_list, _|
+                    Node_function.new(name, ass_list.flatten, stmt_list)}
             end
 
             rule :assignment_list do
                 match(:assignment, ",", :assignment_list) {|m, _, n| [m] << [n] }
                 match(:assignment) {|m| [m] }
             end
-
 
             rule :logical_expression do 
                 match(:logical_term, :or, :logical_expression)  {|a,b,c| Node_logical_expression.new(a,"||",c)}
@@ -322,8 +334,3 @@ class LanguageParser
         end
     end
 end
-
-# l = LanguageParser.new()
-# l.read_file("test2.gph")
-# l.roll()
-

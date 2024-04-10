@@ -111,7 +111,7 @@ class Node_array_add < Node
         if target_array["type"].include?("array")
             if target_array["const"] == false
                 @var.each do |m|
-                    if m.get_type == nil || target_array["type"].include?(m.get_type)
+                    if m.get_type == "nil" || target_array["type"].include?(m.get_type)
                         current_value = eval(target_array["value"])
                         current_value << eval(m.evaluate)
                         target_array["value"] = current_value.to_s
@@ -196,6 +196,18 @@ class Node_array_accessor < Node
     end
 end
 
+class Node_standalone_scope < Node
+    def initialize(stmt)
+        @stmt = stmt
+    end
+
+    def evaluate()
+        new_scope()
+        @stmt.evaluate
+        close_scope()
+    end
+end
+
 class Node_array < Node
     attr_accessor :values
     def initialize(type, values)
@@ -204,16 +216,19 @@ class Node_array < Node
     end
 
     def get_type
+        if @type == "nil" 
+            evaluate()
+        end
         return @type
     end
 
     def evaluate()
         output = []
         @values.each do |m|
-            if m.is_a?(Node_array) && m.get_type == nil
+            if m.is_a?(Node_array) && m.get_type == "nil"
                 m.update_type("array_"+m.values[0].get_type)
             end
-            if @type === nil
+            if @type === "nil"
                 update_type("array_"+m.get_type)
             end
             if m.get_type != @type  
@@ -323,9 +338,9 @@ class Node_auto_assignment < Node_assignment
     end
 
     def evaluate
-        if @value.get_type == nil 
-            @value.evaluate
-        end
+        # if @value.get_type == "nil"
+        #     @value.evaluate
+        # end
         @type = @value.get_type
         super
     end
@@ -360,7 +375,7 @@ end
 
 class Node_function < Node
     attr_accessor :name, :variable_list, :function_body, :type
-    def initialize(name, variable_list = [], function_body, type)
+    def initialize(name, variable_list, function_body, type = "nil")
         @name = name
         @variable_list = variable_list 
         @function_body = function_body
@@ -378,11 +393,14 @@ class Node_function_call < Node
     def initialize(name, variable_list)
         @name = name
         @variable_list = variable_list
-        @type = nil
+        @type = "nil"
     end
 
     def get_type()
-        @type = look_up_fun(@name).type
+        @type = look_up_fun(@name).type unless look_up_fun(@name).type == "nil"
+        if @type == "nil" 
+            evaluate()
+        end
         return @type
     end
 
@@ -409,8 +427,9 @@ class Node_function_call < Node
 
             return_value = fun.function_body.evaluate
             if fun.function_body.is_a?(Node_return)
-               
+                set_type(fun.function_body)
             elsif return_value.is_a?(Node_return)
+                set_type(return_value)
                 return_value = return_value.evaluate
             else 
                 return_value = "nil"
@@ -421,6 +440,13 @@ class Node_function_call < Node
         end
         raise "The function with the name #{@name} does not exist"
     end
+
+    def set_type(value)
+        # if value.get_type == nil 
+        #     value.evaluate
+        # end
+        @type = value.get_type
+    end
 end
 
 class Node_expression < Node
@@ -429,7 +455,7 @@ class Node_expression < Node
         @lhs = lhs
         @operator = operator
         @rhs = rhs
-        @type = nil
+        @type = "nil"
     end
 
     def get_type()

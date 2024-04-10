@@ -39,6 +39,11 @@ class LanguageTest < Test::Unit::TestCase
 		assert_equal(5, execute("5;"))
 	end
 
+	def test_standalone_scope
+		assert_equal(20, execute("int a = 20; {int a = 10;} a;"))
+		assert_equal(10, execute("mod int a = 20; {a = 10;} a;"))
+	end
+
 	# def test_auto_variables
 	# 	assert_equal(10, execute("auto a = 10; a;"))
 	# 	assert_equal([1,2,3], execute("auto a = [1,2,3]; a;"))
@@ -49,6 +54,7 @@ class LanguageTest < Test::Unit::TestCase
 	# 	assert_equal([1,2,307], execute("mod auto a = [1,2]; a.add(307); a;"))
 	# 	assert_equal(2, execute("mod auto a = [1,2]; a[1];"))
 	# end
+	
 	# def test_data_types_and_auto_keyword
 	# 	# Testing char
 	# 	assert_equal('A', execute("auto a = 'A'; a;"))
@@ -171,6 +177,121 @@ class LanguageTest < Test::Unit::TestCase
 	# 	assert_equal(nil, execute("def int fun_a(mod int a){mod int b = a+3;} fun_a(2);"))
 	# 	assert_equal(9, execute("def int fun_a(mod int a, mod int b, int c){1+2; return(a+b+c);} fun_a(2,3,4);"))
 	# 	assert_equal(9, execute("def int fun_a(mod int a, mod int b, int c){return(a+b+c);1+a;} fun_a(2,3,4);"))
+	# end
+
+	# def test_auto_return_functions
+	# 	assert_equal(6, execute("def fun_a(mod int a){return a+3;} fun_a(2); fun_a(2) + 1;"))
+	# 	assert_equal(2, execute("mod int x = 10; def mod_x(mod int a){x=a;} mod_x(2); x;"))
+	# 	assert_equal(2, execute("def  fun_a(mod int a){ return a;} fun_a(2);"))
+	# 	assert_equal(10, execute("int d=10; def  fun_a(mod int a, int b, mod int c){a*b-c; a = 20;} fun_a(3,4,8); d;"))
+	# 	assert_equal(5, execute("def fun_a(mod int a){mod int b = a+3; return b; b = 10;} fun_a(2);"))
+	# 	assert_equal(nil, execute("def fun_a(mod int a){mod int b = a+3;} fun_a(2);"))
+	# 	assert_equal(9, execute("def fun_a(mod int a, mod int b, int c){1+2; return(a+b+c);} fun_a(2,3,4);"))
+	# 	assert_equal(9, execute("def fun_a(mod int a, mod int b, int c){return(a+b+c);1+a;} fun_a(2,3,4);"))
+	# end
+	# def test_auto_complex_expressions
+	# 	assert_equal(4, execute("def calculate(){ return 2*2; } calculate();"))
+	# 	assert_equal(7, execute("int a = 3; int b = 4; def sum(){ return a+b; } sum();"))
+	# end
+	  
+	# def test_auto_function_within_function
+	# 	assert_equal(11,execute("def  add_5(int num){return num+5;} 1+add_5(5);"))
+	# 	assert_equal(10, execute("
+	# 		def inner(int a){ 
+	# 			return a * 2; 
+	# 		}
+	# 	  	def outer(){
+	# 			int output = inner(5);
+	# 			return output;
+	# 	  	}
+	# 		outer();
+	# 	"))
+
+	# 	assert_equal(10, execute("
+	# 		def  inner(int a){ 
+	# 			return a * 2; 
+	# 		}
+	# 		int output = inner(5); 
+	# 		inner(5);
+	# 	"))
+			
+	# 	assert_equal(15, execute("
+	# 		def outer(){
+	# 			int base = 5;
+	# 			def inner(int a){ return a + base; }
+	# 			return inner(10);
+	# 		}
+	# 		outer();
+	# 	"))
+	# end
+
+	# def test_auto_recursion
+	# 	assert_equal(5, execute("
+	# 	mod int counter = 1;
+	# 	def count_up(){
+	# 		if(counter < 5){
+	# 			counter = counter + 1;
+	# 			count_up();
+	# 		}
+	# 		return counter;
+	# 	}
+	# 	count_up();
+	# 	"))
+
+	# 	assert_equal(120, execute("
+	# 	  def factorial(mod int n){
+	# 		if(n <= 1){ return 1; }
+	# 		return n * factorial(n-1); 
+	# 	  }
+	# 	  factorial(5);
+	# 	"))
+
+	# 	assert_equal(20, execute("
+	# 		def add_5(mod int n){
+	# 			if(n >= 20){ return n; }
+	# 			return add_5(n + 5); 
+	# 		}
+	# 		add_5(0);
+	# 	"))
+
+	# 	assert_equal(22, execute("
+	# 	def add_5(mod int n){
+	# 		if(n >= 20){ return n; }
+	# 		return 5;
+	# 	}
+	# 	add_5(22);
+	# 	"))
+
+	# 	assert_equal(20, execute("
+	# 	mod int a = 20;
+	# 	if(a >= 20){a;}
+	# 	"))
+	# end
+	  
+	# def test_auto_loop_with_function
+	# 	assert_equal(true, execute("
+	# 		mod int i = 0;
+	# 		def check_limit(mod int a){ if(a < 5){ 1+2; return true; 3+4;} if(a >= 5){ 1+2; return false; 3+4; }}
+	# 		check_limit(2);
+	# 	"))
+	# 	assert_equal(true, execute("
+	# 		mod int i = 0;
+	# 		def check_limit(mod int a){ if(a >= 5){ 1+2; return false; 3+4; } if(a < 5){ 1+2; return true; 3+4;}}
+	# 		check_limit(2);
+	#   	"))
+
+	# 	assert_equal(true, execute("
+	# 		mod int i = 0;
+	# 		def check_limit(mod int a){if(a < 5){return true;}}
+	# 		check_limit(2);
+	# 	"))
+
+	# 	assert_equal(5, execute("
+	# 		mod int i = 0;
+	# 		def checkLimit(int a){ if(a < 5) { return true; }  if(a >= 5){ return false; } }
+	# 		while(checkLimit(i)){ i = i + 1; }
+	# 		if(i == 5) { i; } 
+	# 	"))
 	# end
 
 	# def test_complex_expressions
@@ -386,10 +507,5 @@ class LanguageTest < Test::Unit::TestCase
 	# 	# Error cases
 	# 	assert_raise(TypeError) { execute("mod bool[] a = []; a.add('t');")}
 	# 	assert_raise(IndexError) { execute("mod bool[] a = [true,false,true]; a[3];")}
-	#   end
-
-	
-	  
-	  
-	  
+	#   end	  
 end

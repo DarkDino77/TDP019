@@ -5,8 +5,8 @@
 [ ] Fixa chars 
 
 [x] Auto
-[ ] Inget krav på returtyper för funktioner
-[ ] Scopes { }
+[x] Inget krav på returtyper för funktioner
+[x] Scopes { }
 [ ] Fixa strings om vi orkar
 [ ] Uppdatera BNF
 [ ] Slipa på koden + skriva tester 
