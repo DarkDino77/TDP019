@@ -187,12 +187,12 @@ class LanguageParser
 
 
             rule :logical_expression do 
-                match(:logical_term, :or, :logical_expression)  {|a,b,c| Node_expression.new(a,"||",c)}
+                match(:logical_term, :or, :logical_expression)  {|a,b,c| Node_logical_expression.new(a,"||",c)}
                 match(:logical_term)
             end
             
             rule :logical_term do 
-                match(:logical_factor, :and, :logical_term)  {|a,b,c| Node_expression.new(a,"&&",c)}
+                match(:logical_factor, :and, :logical_term)  {|a,b,c| Node_logical_expression.new(a,"&&",c)}
                 match(:logical_factor)
             end
 
@@ -203,7 +203,7 @@ class LanguageParser
             end
 
             rule :comparison_expression do
-                match(:expression, :comparison_operator, :expression)  {|a,b,c| Node_expression.new(a,b,c)}
+                match(:expression, :comparison_operator, :expression)  {|a,b,c| Node_logical_expression.new(a,b,c)}
                 match(:expression)
             end
 

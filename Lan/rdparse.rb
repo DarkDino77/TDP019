@@ -13,6 +13,7 @@ require 'logger'
 
 class Rule
 
+
   # A rule is created through the rule method of the Parser class, like this:
   #   rule :term do
   #     match(:term, '*', :dice) {|a, _, b| a * b }
@@ -82,7 +83,7 @@ class Rule
             result = nil
             break
           end
-          #@logger.debug("Matched '#{@name} = #{match.pattern[index..-1].inspect}'")
+          #@logger.debug("Matched '#{@name} = #{match.pattern[index..-1].inspect}'") 
         else
           # Otherwise, we consume the token as part of applying this rule
           nt = @parser.expect(token)
@@ -93,7 +94,7 @@ class Rule
             else
               pattern = match.pattern
             end
-            #@logger.debug("Matched token '#{nt}' as part of rule '#{@name} <= #{pattern.inspect}'")
+           # @logger.debug("Matched token '#{nt}' as part of rule '#{@name} <= #{pattern.inspect}'")
           else
             result = nil
             break
@@ -147,7 +148,7 @@ class Parser
         match = tok.pattern.match(string)
         # The regular expression of a token has matched the beginning of 'string'
         if match
-          @logger.debug("Token #{match[0]} consumed")
+          # @logger.debug("Token #{match[0]} consumed")
           # Also, evaluate this expression by using the block
           # associated with the token
           @tokens << tok.block.call(match.to_s) if tok.block

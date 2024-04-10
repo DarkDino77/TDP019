@@ -27,7 +27,7 @@ def execute(data)
     end
 end
 
-def log(state = true)
+def log(state = false)
     if state
         @diceParser.logger.level = Logger::DEBUG
     else

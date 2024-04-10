@@ -11,6 +11,7 @@ class Node
     def evaluate()
         raise NotImplementedError, "Must implement #{self.class}.evaluate"
     end
+    
     def new_scope
         @@variable_stack << {}
         @@function_stack << {}
@@ -102,6 +103,7 @@ class Node_datatype < Node
     end
 
     def evaluate()
+       # pp @value
         return @value
     end
 end
@@ -122,8 +124,14 @@ class Node_array_add < Node
                     if m.get_type == nil || target_array["type"].include?(m.get_type)
                         current_value = eval(target_array["value"])
                         # pp "BYE"
+                        # pp target_array["type"].include?("char")
+                        # pp "hello"
+                        # pp m
+                        # pp m.evaluate
+                        # pp eval(m.evaluate)
+                        # pp "då"
+                        #current_value << (target_array["type"].include?("char") ? m.evaluate : eval(m.evaluate))
                         current_value << eval(m.evaluate)
-                        
                         target_array["value"] = current_value.to_s
                     else
                         raise TypeError, "Array expected #{target_array["type"].split("_")[1]} but got a #{m.get_type()}"
@@ -147,6 +155,7 @@ class Node_array_remove < Node
     
     def evaluate()
         target_array = look_up_var(@name)
+       # pp target_array
         return_value = "nil"
         
 
@@ -169,8 +178,8 @@ class Node_array_remove < Node
         else
             raise TypeError, "Variable with the name #{@name} is not a Array"
         end
-        
-        return return_value.to_s
+
+        return target_array["type"].include?("char") ? "'"+return_value+"'" : return_value.to_s
     end
 
     def remove_index(target_array, index)
@@ -201,7 +210,8 @@ class Node_array_accessor < Node
         else
             raise TypeError, "Variable with the name #{@name} is not a Array"
         end
-        return return_value.to_s
+
+        return target_array["type"].include?("char") ? "'"+return_value+"'" : return_value.to_s
     end
 end
 
@@ -219,6 +229,7 @@ class Node_array < Node
     def evaluate()
         # Kontrollera att alla värden är av rätt typ
         output = []
+        #pp @values
         @values.each do |m|
             if m.is_a?(Node_array) && m.get_type == nil
                 m.update_type("array_"+m.values[0].get_type)
@@ -231,7 +242,12 @@ class Node_array < Node
                     raise TypeError, "Array expected #{@type.split("_")[1]} but got a #{m.get_type()}"
                 end
             end
+
+            #pp "HERE: #{eval(m.evaluate)}"
+            ##output << (@type.include?("char") ? m.evaluate : eval(m.evaluate))
             output << eval(m.evaluate)
+            # pp m
+            # pp output
         end
         return output.to_s
     end
@@ -290,6 +306,7 @@ class Node_variable < Node
     end
     
     def evaluate()
+        #pp " current stack: #{@@variable_stack}"
         #pp look_up_var(@name)["value"]
         return look_up_var(@name)["value"]
     end
@@ -309,6 +326,7 @@ class Node_assignment < Node
     end
 
     def evaluate()
+       # pp @value
         if @@variable_stack.any? { |hash| hash.value?(@name) }
             raise "Variable with name #{@name} already exists"
         else
@@ -462,4 +480,16 @@ class Node_expression < Node
     end
 end
 
+class Node_logical_expression < Node_expression
+    attr_accessor :operator, :lhs, :rhs, :type
+    def initialize(lhs, operator, rhs)
+        @lhs = lhs
+        @operator = operator
+        @rhs = rhs
+        @type = "bool"
+    end
 
+    def get_type
+        return @type
+    end
+end
