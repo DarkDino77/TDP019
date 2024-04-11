@@ -7,6 +7,8 @@ class LanguageParser
     def initialize
         @language_parser = Parser.new("language parser") do
             token(/\s+/)
+            token(/\[/) {:bracket_open}
+            token(/\]/) {:bracket_close}
             token(/\badd\b/) {:add}
             token(/\bremove\b/) {:remove}
             token(/\bprint\b/) {:print}
@@ -21,6 +23,7 @@ class LanguageParser
             token(/\bchar\b/) {:char_token}
             token(/\bbool\b/) {:bool_token}
             token(/\bauto\b/) {:auto_token}
+            token(/\bvoid\b/) {:void_token}
             token(/\breturn\b/) {:return}
             token(/\bif\b/) {:if}
             token(/\bwhile\b/) {:while}
@@ -35,21 +38,20 @@ class LanguageParser
 
             start :program do
                 match(:statement_list) do |m|        
-                    puts "================================[NODE TREE]================================"
-                    pp m 
-                    puts "\n"
-                    time1 = Time.now
+                    # puts "================================[NODE TREE]================================"
+                    # pp m 
+                    # puts "\n"
+                    # time1 = Time.now
                     return_value = m.evaluate
-                    time2 = Time.now
-                    elapsed_time = time2 - time1
-                    puts "Evaluation time: #{elapsed_time} seconds"
+                    # time2 = Time.now
+                    # elapsed_time = time2 - time1
+                    # puts "Evaluation time: \e[01m#{elapsed_time}\e[00m seconds"
 
                     return_value
                 end
             end
 
             rule :statement_list do 
-                # Fixa så att scopes kan skapas mitt i kod
                 match(:statement, :statement_list){|stm, stm_l| 
                     Node_statement_list.new(stm, stm_l)}
                 match(:statement) {|stm| Node_statement_list.new(stm)}
@@ -73,9 +75,8 @@ class LanguageParser
             
             rule :standalone_scope do
                 match("{",:statement_list,"}"){|_,stmt,_|
-                Node_standalone_scope.new(stmt)
-            }    
-            
+                    Node_standalone_scope.new(stmt)
+                }    
             end
 
             rule :return_statement do
@@ -84,7 +85,7 @@ class LanguageParser
 
             rule :array_function do
                 match(:variable,"." ,:add,"(",:variable_list,")"){|name,_,_,_,var,_|
-                    Node_array_add.new(name,var.flatten)}
+                    Node_array_add.new(name,var.flatten)}    
                 match(:variable,"." ,:remove,"(",:expression,")"){|name,_,_,_,index,_|
                     Node_array_remove.new(name, index)}
                 match(:variable,"." ,:remove,"(",")"){|name,_,_,_,_|
@@ -100,10 +101,6 @@ class LanguageParser
                 match(:auto_token, :variable, "=", :logical_expression){|_,name,_,value|
                     Node_auto_assignment.new(name, value)
                 }
-                
-                # match(:auto_token, :variable, "=",:array_list){|_, name, _, arr_list|
-                #     Node_auto_assignment.new(name, arr_list)
-                # }
 
                 match(:array, :variable, "=",:array_list){|type, name, _, arr_list|
                 arr_list.update_type(type)
@@ -115,40 +112,32 @@ class LanguageParser
                 }
 
                 match(:int_token, :variable, "=", :expression) {|_, name,_,value|
-                    type = "int" # Sätt 'Type' dyamiskt 
-                    Node_assignment.new(type, name, value)
+                    Node_assignment.new("int", name, value)
                 }
                 match(:int_token, :variable){|_,name|
-                    type = "int" # Sätt 'Type' dyamiskt
                     value = Node_datatype.new("0","int")
-                    Node_assignment.new(type, name, value)
+                    Node_assignment.new("int", name, value)
                 }
                 match(:float_token, :variable, "=", :expression) {|_, name,_,value|
-                    type = "float" # Sätt 'Type' dyamiskt 
-                    Node_assignment.new(type, name, value)
+                    Node_assignment.new("float", name, value)
                 }
                 match(:float_token, :variable){|_,name|
-                    type = "float" # Sätt 'Type' dyamiskt
                     value = Node_datatype.new("0.0","float")
-                    Node_assignment.new(type, name, value)
+                    Node_assignment.new("float" , name, value)
                 }
                 match(:bool_token, :variable, "=", :logical_expression) {|_, name,_,value|
-                    type = "bool" # Sätt 'Type' dyamiskt 
-                    Node_assignment.new(type, name, value)
+                    Node_assignment.new("bool", name, value)
                 }
                 match(:bool_token, :variable){|_,name|
-                    type = "bool" # Sätt 'Type' dyamiskt
                     value = Node_datatype.new("true","bool")
-                    Node_assignment.new(type, name, value)
+                    Node_assignment.new("bool", name, value)
                 }
                 match(:char_token, :variable, "=", :atom) {|_, name,_,value|
-                    type = "char" # Sätt 'Type' dyamiskt 
-                    Node_assignment.new(type, name, value)
+                    Node_assignment.new("char", name, value)
                 }
                 match(:char_token, :variable){|_,name|
-                    type = "char" # Sätt 'Type' dyamiskt
                     value = Node_datatype.new("'a'","char")
-                    Node_assignment.new(type, name, value)
+                    Node_assignment.new("char", name, value)
                 }
             end
 
@@ -176,8 +165,8 @@ class LanguageParser
             end 
 
             rule :array_list do
-                match("[", :variable_list, "]") {|_,m,_| Node_array.new("nil", m.flatten)}
-                match("[", "]") {|_,_| Node_array.new("nil", [])}
+                match(:bracket_open, :variable_list, :bracket_close) {|_,m,_| Node_array.new("nil", m.flatten)}
+                match(:bracket_open, :bracket_close) {|_,_| Node_array.new("nil", [])}
             end
 
             rule :function_call do
@@ -202,9 +191,11 @@ class LanguageParser
                 match(:def, :type, :variable, "(", :assignment_list, ")", "{",:statement_list, "}") {|_, type, name, _, ass_list, _, _, stmt_list, _|
                     Node_function.new(name, ass_list.flatten, stmt_list, type.name.split('_')[0])}
                 match(:def,:variable, "(", ")", "{",:statement_list, "}") {|_, name, _, _, _, stmt_list, _|
-                    Node_function.new(name, [], stmt_list)} # KANSKE FLYTTA SPLIT
+                    Node_function.new(name, [], stmt_list)}
                 match(:def,  :variable, "(", :assignment_list, ")", "{",:statement_list, "}") {|_, name, _, ass_list, _, _, stmt_list, _|
                     Node_function.new(name, ass_list.flatten, stmt_list)}
+
+                    # LÄGG TILL REGEL FÖR VOID
             end
 
             rule :assignment_list do
@@ -242,50 +233,42 @@ class LanguageParser
             end
 
             rule :expression do
-                match(:term, "+", :expression ) {|a,b,c| Node_expression.new(a,b,c)}
-                match(:expression, "-", :term) {|a,b,c| Node_expression.new(a,b,c)}
+                match(:expression, "+", :term) {|a, op, b| Node_expression.new(a, op, b) }
+                match(:expression, "-", :term) {|a, op, b| Node_expression.new(a, op, b) }
                 match(:term)
             end
-
+            
             rule :term do
-                match(:factor, "*", :term) {|a,b,c| Node_expression.new(a,b,c)}
-                match(:factor, "/", :term) {|a,b,c| Node_expression.new(a,b,c)}
+                match(:term, "*", :factor) {|a, op, b| Node_expression.new(a, op, b) }
+                match(:term, "/", :factor) {|a, op, b| Node_expression.new(a, op, b) }
                 match(:factor)
             end
-        
+            
             rule :factor do
-                match(:atom, "**", :factor) {|a,b,c| Node_expression.new(a,b,c)}
-                match(:atom, "%", :factor) {|a,b,c| Node_expression.new(a,b,c)}
+                match(:factor, "**", :unary) {|a, op, b| Node_expression.new(a, op, b) }
+                match(:unary, "%", :factor) {|a, op, b| Node_expression.new(a, op, b) }
+                match(:unary)
+            end
+            
+            rule :unary do
+                match("-", :unary) {|op, a| Node_negative.new(a) }
                 match(:atom)
             end
             
             rule :atom do
                 match(:array_list)
                 match(:function_call)
-                match("-", "(", :expression, ")") {|_,_,m,_| 
-                    m.lhs.value = -m.lhs.value
-                    m.rhs.value = -m.rhs.value
-                    m
-                }
                 match("(", :expression, ")") {|_,m,_| m }
-                match("\"", :char ,"\"") {|_,m,_| Node_datatype.new("'"+m+"'", "char")}
-                match("\'", :char ,"\'") {|_,m,_| Node_datatype.new("'"+m+"'", "char")}
+                match("\"", :char ,"\"") {|_,m,_| Node_datatype.new("'" + m + "'", "char")}
+                match("\'", :char ,"\'") {|_,m,_| Node_datatype.new("'" + m + "'", "char")}
                 match(:bool) {|m| Node_datatype.new(m.name, "bool")}
                 match(:variable_call)
-                match(:unary)
-
-            end       
-            
-            rule :unary do
-                match("-", :float){|_, m| Node_datatype.new("-" + m, "float")}
                 match(:float){|m| Node_datatype.new(m, "float")}
-                match("-", :int){|_, m| Node_datatype.new("-" + m, "int")}
                 match(:int){|m| Node_datatype.new(m, "int")}
             end
-           
 
             rule :variable_call do
-                match(:variable,"[", :expression, "]"){|name,_,index,_|
+                match(:variable,:bracket_open, :expression, :bracket_close){|name,_,index,_|
                     Node_array_accessor.new(name, index)}
                 match(:variable) {|m| Node_variable.new(m)}
             end
@@ -297,7 +280,7 @@ class LanguageParser
             end
 
             rule :array do
-                match(:type, "[", "]"){|type| "array_"+type.name.split('_')[0]}
+                match(:type, :bracket_open, :bracket_close){|type| "array_"+type.name.split('_')[0]}
             end
 
             rule :type do

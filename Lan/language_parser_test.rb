@@ -2,150 +2,188 @@ require 'test/unit'
 require './graphite.rb'
 
 class LanguageTest < Test::Unit::TestCase
-	# def test_arithmetic
-	# 	assert_equal(3, execute("1+2;"))
-	# 	# assert_equal("a b", execute("'a'+'b';")) # Hitta en lösning på denna
-	# 	assert_equal(9, execute("5+4;"))
-	# 	assert_equal(4, execute("7-3;"))
-	# 	assert_equal(12, execute("3*4;"))
-	# 	assert_equal(4, execute("8/2;"))
-	# 	assert_equal(1, execute("10%3;"))
-	# 	assert_equal(14, execute("2*(2+5);"))
-	# 	assert_equal(-9, execute("1-(2*5);"))
-	# 	assert_equal(3, execute("1+4/2;"))
-	# 	assert_equal(12, execute("9+3;"))
-	# 	assert_equal(5, execute("12-7;"))
-	# 	assert_equal(12, execute("2*6;"))
-	# 	assert_equal(6, execute("18/3;"))
-	# 	assert_equal(1, execute("17%4;"))
-	# 	assert_equal(16, execute("2**4;"))
-	# 	assert_equal(21, execute("(1+2)*(3+4);"))
-	# 	assert_equal(6.5, execute("1+(4*2)-(5/2.0);"))
-	# 	assert_equal(7.0, execute("1+(4*2.0)-(5/2);"))
-	# 	assert_equal(7.0, execute("1.0+(4*2)-(5/2);"))
-	# 	assert_equal(4.0, execute("1.5+2.5;"))
-	# 	assert_equal(2.0, execute("3.0-1.0;"))
-	# 	assert_equal(9.0, execute("4.5*2.0;"))
-	# 	assert_equal(3.0, execute("9.0/3.0;"))
-	# 	assert_equal(0.30000000000000004, execute("0.1+0.2;"))
-	# 	assert_equal(0.19999999999999996, execute("1.0-0.8;"))
-	# 	assert_equal(0, execute("2/4;"))
-	# 	assert_equal(-4, execute("-1-3;"))
-	# 	assert_equal(2, execute("-1--3;"))
-	# 	assert_equal(4, execute("1--3;"))
-	# 	assert_equal(-1, execute("-1--1-1;"))
-	# 	assert_equal(2, execute("-1--(4-1);"))
-	# 	assert_equal(-5, execute("-5;"))
-	# 	assert_equal(5, execute("5;"))
-	# end
+	def test_arithmetic
+		assert_equal(3, execute("1+2;"))
+		# assert_equal("a b", execute("'a'+'b';")) # Hitta en lösning på denna
+		assert_equal(9, execute("5+4;"))
+		assert_equal(4, execute("7-3;"))
+		assert_equal(12, execute("3*4;"))
+		assert_equal(4, execute("8/2;"))
+		assert_equal(1, execute("10%3;"))
+		assert_equal(14, execute("2*(2+5);"))
+		assert_equal(-9, execute("1-(2*5);"))
+		assert_equal(3, execute("1+4/2;"))
+		assert_equal(12, execute("9+3;"))
+		assert_equal(5, execute("12-7;"))
+		assert_equal(12, execute("2*6;"))
+		assert_equal(6, execute("18/3;"))
+		assert_equal(1, execute("17%4;"))
+		assert_equal(16, execute("2**4;"))
+		assert_equal(21, execute("(1+2)*(3+4);"))
+		assert_equal(6.5, execute("1+(4*2)-(5/2.0);"))
+		assert_equal(7.0, execute("1+(4*2.0)-(5/2);"))
+		assert_equal(7.0, execute("1.0+(4*2)-(5/2);"))
+		assert_equal(4.0, execute("1.5+2.5;"))
+		assert_equal(2.0, execute("3.0-1.0;"))
+		assert_equal(9.0, execute("4.5*2.0;"))
+		assert_equal(3.0, execute("9.0/3.0;"))
+		assert_equal(0.30000000000000004, execute("0.1+0.2;"))
+		assert_equal(0.19999999999999996, execute("1.0-0.8;"))
+		assert_equal(0, execute("2/4;"))
+		assert_equal(-4, execute("-1-3;"))
+		assert_equal(2, execute("-1--3;"))
+		assert_equal(4, execute("1--3;"))
+		assert_equal(-1, execute("-1--1-1;"))
+		assert_equal(2, execute("-1--(4-1);"))
+		assert_equal(-5, execute("-5;"))
+		assert_equal(5, execute("5;"))
+		assert_equal(27, execute("3**3;"))
+		assert_equal(-8, execute("-2**3;")) 
+		assert_equal(4, execute("(2**3)/2;")) 
+		assert_equal(9, execute("2+(3*2)+1;"))
+		assert_equal(0, execute("2-2;"))
+		assert_equal(-2, execute("2*(-1);")) 
+		assert_equal(4.5, execute("9/2.0;")) 
+		assert_equal(-4, execute("(-7)/2;")) 
+		assert_equal(-3.5, execute("(-7.0)/2;")) 
+		assert_equal(49, execute("7**2;")) 
+		assert_equal(-49, execute("-(7**2);"))
+		assert_equal(5, execute("15%10;")) 
+		assert_equal(8, execute("2**3;")) 
+		assert_equal(-27, execute("-3**3;")) 
+		assert_equal(2.25, execute("4.5/2;")) 
+		assert_equal(77, execute("2+(3*(2+3)**2);"))
+		assert_equal(0.5, execute("(1+1)/(2*2.0);"))
+		assert_equal(-6, execute("-3+(2-5);"))
+		assert_equal(25, execute("(5)**2;"))
+		assert_equal(125, execute("5**3;"))
+		assert_equal(-125, execute("-5**3;"))
+		assert_equal(5, execute("10/2;"))
+		assert_equal(-5, execute("-10/2;")) 
+		assert_equal(-5, execute("10/-2;")) 
+		assert_equal(5, execute("-10/-2;")) 
+		assert_equal(2.5, execute("5/2.0;")) 
+		assert_equal(13, execute("2+3*3+2;")) 
+		assert_equal(25, execute("(2+3)*(3+2);")) 
+		assert_equal(-2, execute("2*(-1)+0;"))
+		assert_equal(8, execute("9-4/2*3+5;")) 
+		assert_equal(3, execute("1*3+0;"))
+		assert_equal(1, execute("0**0;"))
+		assert_equal(1, execute("2**0;"))
+		assert_equal(8, execute("2**(1+2);")) 
+		assert_equal(-8, execute("-(2**(1+2));")) 
+		assert_equal(4, execute("16**(0.5);")) 
+		assert_equal(3, execute("27**(1/3.0);")) 
+		assert_equal(5, execute("2*3+4/2-3;")) 
+	end
 
-	# def test_standalone_scope
-	# 	assert_equal(20, execute("int a = 20; {int a = 10;} a;"))
-	# 	assert_equal(10, execute("mod int a = 20; {a = 10;} a;"))
-	# end
+	def test_standalone_scope
+		assert_equal(20, execute("int a = 20; {int a = 10;} a;"))
+		assert_equal(10, execute("mod int a = 20; {a = 10;} a;"))
+	end
 
-	# def test_auto_variables
-	# 	assert_equal(10, execute("auto a = 10; a;"))
-	# 	assert_equal([1,2,3], execute("auto a = [1,2,3]; a;"))
-	# 	assert_equal(0, execute("auto a = 1/2; a;"))
-	# 	assert_equal(false, execute("auto a = not true; a;"))
-	# 	assert_equal(1.5, execute("auto a = 3/2.0; a;"))
-	# 	assert_equal([1,2], execute("mod auto a = [1,2,3]; a.remove(2); a;"))
-	# 	assert_equal([1,2,307], execute("mod auto a = [1,2]; a.add(307); a;"))
-	# 	assert_equal(2, execute("mod auto a = [1,2]; a[1];"))
-	# end
+	def test_auto_variables
+		assert_equal(10, execute("auto a = 10; a;"))
+		assert_equal([1,2,3], execute("auto a = [1,2,3]; a;"))
+		assert_equal(0, execute("auto a = 1/2; a;"))
+		assert_equal(false, execute("auto a = not true; a;"))
+		assert_equal(1.5, execute("auto a = 3/2.0; a;"))
+		assert_equal([1,2], execute("mod auto a = [1,2,3]; a.remove(2); a;"))
+		assert_equal([1,2,307], execute("mod auto a = [1,2]; a.add(307); a;"))
+		assert_equal(2, execute("mod auto a = [1,2]; a[1];"))
+	end
 	
-	# def test_data_types_and_auto_keyword
-	# 	# Testing char
-	# 	assert_equal('A', execute("auto a = 'A'; a;"))
-	# 	assert_equal(['X', 'Y', 'Z'], execute("auto a = ['X', 'Y', 'Z']; a;"))
+	def test_data_types_and_auto_keyword
+		# Testing char
+		assert_equal('A', execute("auto a = 'A'; a;"))
+		assert_equal(['X', 'Y', 'Z'], execute("auto a = ['X', 'Y', 'Z']; a;"))
 	
-	# 	# Testing float
-	# 	assert_equal(3.14, execute("auto a = 3.14; a;"))
-	# 	assert_equal([1.1, 2.2, 3.3], execute("auto a = [1.1, 2.2, 3.3]; a;"))
+		# Testing float
+		assert_equal(3.14, execute("auto a = 3.14; a;"))
+		assert_equal([1.1, 2.2, 3.3], execute("auto a = [1.1, 2.2, 3.3]; a;"))
 	
-	# 	# Testing bool
-	# 	assert_equal(true, execute("auto a = true; a;"))
-	# 	assert_equal([false, true, false], execute("auto a = [false, true, false]; a;"))
+		# Testing bool
+		assert_equal(true, execute("auto a = true; a;"))
+		assert_equal([false, true, false], execute("auto a = [false, true, false]; a;"))
 
-	# 	# Float arithmetic operation
-	# 	assert_equal(6.28, execute("auto a = 3.14; auto b = a * 2; b;"))
+		# Float arithmetic operation
+		assert_equal(6.28, execute("auto a = 3.14; auto b = a * 2; b;"))
 	
-	# 	# Logical operation with bool
-	# 	assert_equal(false, execute("auto a = true; auto b = !a; b;"))
+		# Logical operation with bool
+		assert_equal(false, execute("auto a = true; auto b = !a; b;"))
 	
-	# 	# Array operations
-	# 	# Adding elements to char array
-	# 	assert_equal(['A', 'B', 'C', 'D'], execute("mod auto a = ['A', 'B', 'C']; a.add('D'); a;"))
+		# Array operations
+		# Adding elements to char array
+		assert_equal(['A', 'B', 'C', 'D'], execute("mod auto a = ['A', 'B', 'C']; a.add('D'); a;"))
 	
-	# 	# Adding elements to float array
-	# 	assert_equal([1.1, 2.2, 3.3, 4.4], execute("mod auto a = [1.1, 2.2, 3.3]; a.add(4.4); a;"))
+		# Adding elements to float array
+		assert_equal([1.1, 2.2, 3.3, 4.4], execute("mod auto a = [1.1, 2.2, 3.3]; a.add(4.4); a;"))
 	
-	# 	# Adding elements to bool array
-	# 	assert_equal([true, false, true, true], execute("mod auto a = [true, false, true]; a.add(true); a;"))
-	#   end
+		# Adding elements to bool array
+		assert_equal([true, false, true, true], execute("mod auto a = [true, false, true]; a.add(true); a;"))
+	  end
 
-	# def test_comparisons
-	# 	assert_equal(false, execute("true==false;"))
-	# 	assert_equal(true, execute("true && true;"))
-	# 	assert_equal(false, execute("true && false;"))
-	# 	assert_equal(false, execute("false && true;"))
-	# 	assert_equal(false, execute("false && false;"))
-	# 	assert_equal(true, execute("true and true;"))
-	# 	assert_equal(false, execute("true and false;"))
-	# 	assert_equal(false, execute("false and true;"))
-	# 	assert_equal(false, execute("false and false;"))
-	# 	assert_equal(true, execute("true || false;"))
-	# 	assert_equal(true, execute("false || true;"))
-	# 	assert_equal(true, execute("true || true;"))
-	# 	assert_equal(false, execute("false || false;"))
-	# 	assert_equal(true, execute("true or false;"))
-	# 	assert_equal(true, execute("false or true;"))
-	# 	assert_equal(true, execute("true or true;"))
-	# 	assert_equal(false, execute("false or false;"))
-	# 	assert_equal(true, execute("5>3;"))
-	# 	assert_equal(true, execute("2<4;"))
-	# 	assert_equal(true, execute("5>=5;"))
-	# 	assert_equal(true, execute("4<=6;"))
-	# 	assert_equal(true, execute("5!=3;"))
-	# 	assert_equal(false, execute("5!=5;"))
-	# 	assert_equal(true, execute("7==7;"))
-	# 	assert_equal(true, execute("10!=5;"))
-	# 	assert_equal(true, execute("3>2;"))
-	# 	assert_equal(true, execute("4<5;"))
-	# 	assert_equal(true, execute("6>=6;"))
-	# 	assert_equal(true, execute("7<=8;"))
-	# 	assert_equal(true, execute("7<=8;"))
-	# end
+	def test_comparisons
+		assert_equal(false, execute("true==false;"))
+		assert_equal(true, execute("true && true;"))
+		assert_equal(false, execute("true && false;"))
+		assert_equal(false, execute("false && true;"))
+		assert_equal(false, execute("false && false;"))
+		assert_equal(true, execute("true and true;"))
+		assert_equal(false, execute("true and false;"))
+		assert_equal(false, execute("false and true;"))
+		assert_equal(false, execute("false and false;"))
+		assert_equal(true, execute("true || false;"))
+		assert_equal(true, execute("false || true;"))
+		assert_equal(true, execute("true || true;"))
+		assert_equal(false, execute("false || false;"))
+		assert_equal(true, execute("true or false;"))
+		assert_equal(true, execute("false or true;"))
+		assert_equal(true, execute("true or true;"))
+		assert_equal(false, execute("false or false;"))
+		assert_equal(true, execute("5>3;"))
+		assert_equal(true, execute("2<4;"))
+		assert_equal(true, execute("5>=5;"))
+		assert_equal(true, execute("4<=6;"))
+		assert_equal(true, execute("5!=3;"))
+		assert_equal(false, execute("5!=5;"))
+		assert_equal(true, execute("7==7;"))
+		assert_equal(true, execute("10!=5;"))
+		assert_equal(true, execute("3>2;"))
+		assert_equal(true, execute("4<5;"))
+		assert_equal(true, execute("6>=6;"))
+		assert_equal(true, execute("7<=8;"))
+		assert_equal(true, execute("7<=8;"))
+	end
 	
-	# def test_variable_assignment
-	# 	assert_equal(5, execute("int x = 5;"))	
-	# 	assert_equal(50, execute("mod int y = 50;"))
-	# 	assert_equal(55, execute("mod int y = 50; mod int x = y+5; y = 10; x;"))
-	# 	assert_equal(10, execute("mod int y = 50;y = 10;"))
-	# 	assert_equal(25, execute("mod int y = 20;10+23;y;y+5;"))
-	# end
+	def test_variable_assignment
+		assert_equal(5, execute("int x = 5;"))	
+		assert_equal(50, execute("mod int y = 50;"))
+		assert_equal(55, execute("mod int y = 50; mod int x = y+5; y = 10; x;"))
+		assert_equal(10, execute("mod int y = 50;y = 10;"))
+		assert_equal(25, execute("mod int y = 20;10+23;y;y+5;"))
+	end
 
-	# def test_float_assignment
-	# 	assert_equal(5.0, execute("float x = 5.0;"))
-	# 	assert_equal(5.5, execute("float x = 2.0 + 3.5;"))
-	# 	assert_equal(0.0, execute("float x;"))
-	# 	assert_raise(TypeError) { execute("float x = 5;") }
-	# end
+	def test_float_assignment
+		assert_equal(5.0, execute("float x = 5.0;"))
+		assert_equal(5.5, execute("float x = 2.0 + 3.5;"))
+		assert_equal(0.0, execute("float x;"))
+		assert_raise(TypeError) { execute("float x = 5;") }
+	end
 
-	# def test_integer_assignment
-	# 	assert_equal(5, execute("int x = 5; x;"))
-	# 	assert_equal(0, execute("int x;"))
-	# 	assert_equal(10, execute("int x = 7 + 3;"))
-	# 	assert_raise(TypeError) { execute("int x = 5.0;") }
-	# end
+	def test_integer_assignment
+		assert_equal(5, execute("int x = 5; x;"))
+		assert_equal(0, execute("int x;"))
+		assert_equal(10, execute("int x = 7 + 3;"))
+		assert_raise(TypeError) { execute("int x = 5.0;") }
+	end
 
-	# def test_boolean_assignment
-	# 	assert_equal(true, execute("bool x = true;"))
-	# 	assert_equal(false, execute("bool x = false;"))
-	# 	assert_equal(true, execute("bool x;"))
-	# 	assert_raise(TypeError) { execute("bool x = 1;") }
-	# end
+	def test_boolean_assignment
+		assert_equal(true, execute("bool x = true;"))
+		assert_equal(false, execute("bool x = false;"))
+		assert_equal(true, execute("bool x;"))
+		assert_raise(TypeError) { execute("bool x = 1;") }
+	end
 
 	def test_char_assignment
 		assert_equal('a', execute("char x = 'a'; x;"))
@@ -488,24 +526,24 @@ class LanguageTest < Test::Unit::TestCase
 		assert_raise(IndexError) { execute("mod char[] a = ['a','b','c']; a[3];")}
 	  end
 
-	#   def test_bool_array_functions
-	# 	# Adding booleans
-	# 	assert_equal([true], execute("mod bool[] a = []; a.add(true);"))
-	# 	assert_equal([true, false], execute("mod bool[] a = []; a.add(true, false);"))
+	  def test_bool_array_functions
+		# Adding booleans
+		assert_equal([true], execute("mod bool[] a = []; a.add(true);"))
+		assert_equal([true, false], execute("mod bool[] a = []; a.add(true, false);"))
 		
-	# 	# Nested bool arrays
-	# 	assert_equal([[true, false]], execute("mod bool[] a = []; a.add([true, false]);"))
+		# Nested bool arrays
+		assert_equal([[true, false]], execute("mod bool[] a = []; a.add([true, false]);"))
 	  
-	# 	# Logical operations resulting in boolean addition
-	# 	assert_equal([false], execute("mod bool[] a = []; a.add(5 > 6);"))
+		# Logical operations resulting in boolean addition
+		assert_equal([false], execute("mod bool[] a = []; a.add(5 > 6);"))
 	  
-	# 	# Removal and access
-	# 	assert_equal(true, execute("mod bool[] a = [true, false]; a.remove(0);"))
-	# 	assert_equal([false], execute("mod bool[] a = [true, false]; a.remove(0); a;"))
-	# 	assert_equal(false, execute("mod bool[] a = [true,false,true]; a[1];"))
+		# Removal and access
+		assert_equal(true, execute("mod bool[] a = [true, false]; a.remove(0);"))
+		assert_equal([false], execute("mod bool[] a = [true, false]; a.remove(0); a;"))
+		assert_equal(false, execute("mod bool[] a = [true,false,true]; a[1];"))
 	  
-	# 	# Error cases
-	# 	assert_raise(TypeError) { execute("mod bool[] a = []; a.add('t');")}
-	# 	assert_raise(IndexError) { execute("mod bool[] a = [true,false,true]; a[3];")}
-	#   end	  
+		# Error cases
+		assert_raise(TypeError) { execute("mod bool[] a = []; a.add('t');")}
+		assert_raise(IndexError) { execute("mod bool[] a = [true,false,true]; a[3];")}
+	  end	  
 end

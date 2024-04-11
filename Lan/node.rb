@@ -108,26 +108,28 @@ class Node_array_add < Node
     def evaluate()
         target_array = look_up_var(@name)
 
-        if target_array["type"].include?("array")
-            if target_array["const"] == false
-                @var.each do |m|
-                    if m.get_type == "nil" || target_array["type"].include?(m.get_type)
-                        current_value = target_array["value"]
-                        current_value << m.evaluate
-                        target_array["value"] = current_value
-                    else
-                        raise TypeError, "Array expected #{target_array["type"].split("_")[1]} but got a #{m.get_type()}"
-                    end
-                end                
-            else
-                raise "Variable with name #{@name} is const"
-            end
-        else
-            raise TypeError, "Variable with the name #{@name} is not a Array"
+        unless target_array["type"].include?("array")
+            raise TypeError, "Variable with the name #{@name} is not an Array"
         end
-        return target_array["value"]
+
+        if target_array["const"]
+            raise "Variable with name #{@name} is const and cannot be modified"
+        end
+
+        @var.each do |m|
+            unless m.get_type == "nil" || target_array["type"].include?(m.get_type)
+                raise TypeError, "Array of type #{target_array["type"].split("_")[1]} cannot include elements of type #{m.get_type}"
+            end
+        end
+
+        @var.each do |m|
+            target_array["value"] << m.evaluate
+        end
+
+        target_array["value"]
     end
 end
+
 
 class Node_array_remove < Node
     def initialize(name, index = "nil")
@@ -140,24 +142,22 @@ class Node_array_remove < Node
         return_value = "nil"
         
 
-        if target_array["type"].include?("array")
-            if target_array["const"] == false
-
-                if @index != "nil"
-                    index = @index.evaluate
-                    if index <= target_array["value"].size-1 && index >= 0 
-                        return_value = remove_index(target_array, index)
-                    else
-                        raise IndexError, "outofrange"
-                    end
-                else
-                    return_value = remove_index(target_array, target_array["value"].size-1)
-                end
-            else
-                raise "Variable with name #{@name} is const"
-            end
-        else
+        unless target_array["type"].include?("array")
             raise TypeError, "Variable with the name #{@name} is not a Array"
+        end
+
+        if target_array["const"]
+            raise "Variable with name #{@name} is const and cannot be modified"
+        end
+
+        if @index != "nil"
+            index = @index.evaluate
+            unless index <= target_array["value"].size-1 && index >= 0 
+                raise IndexError, "Index out of range for array with the name #{@name}"
+            end
+            return_value = remove_index(target_array, index)
+        else
+            return_value = remove_index(target_array, target_array["value"].size-1)
         end
 
         return  return_value
@@ -182,15 +182,16 @@ class Node_array_accessor < Node
         target_array = look_up_var(@name)
         return_value = "nil"
         index = @index.evaluate
-        if target_array["type"].include?("array")
-            if index <= target_array["value"].size-1 && index >= 0 
-                return_value = target_array["value"][index]
-            else
-                raise IndexError, "outofrange"
-            end
-        else
+
+        unless target_array["type"].include?("array")
             raise TypeError, "Variable with the name #{@name} is not a Array"
         end
+
+        unless index <= target_array["value"].size-1 && index >= 0 
+            raise IndexError, "outofrange"
+        end
+
+        return_value = target_array["value"][index]
 
         return return_value
     end
@@ -224,6 +225,7 @@ class Node_array < Node
 
     def evaluate()
         output = []
+        
         @values.each do |m|
             if m.is_a?(Node_array) && m.get_type == "nil"
                 m.update_type("array_"+m.values[0].get_type)
@@ -520,5 +522,19 @@ class Node_not
     def evaluate()
  #      pp "Value in not_node: #{@value}"
         return !@value.evaluate
+    end
+end
+
+class Node_negative
+    def initialize(value)
+        @value = value
+    end
+
+    def get_type()
+        return @value.get_type
+    end
+
+    def evaluate()
+        return -@value.evaluate
     end
 end
