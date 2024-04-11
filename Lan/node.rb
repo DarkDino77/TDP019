@@ -86,7 +86,7 @@ end
 class Node_datatype < Node
     attr_accessor :value, :type
     def initialize(value, type)
-        @value = value
+        @value = eval(value)
         @type = type
     end
 
@@ -112,9 +112,9 @@ class Node_array_add < Node
             if target_array["const"] == false
                 @var.each do |m|
                     if m.get_type == "nil" || target_array["type"].include?(m.get_type)
-                        current_value = eval(target_array["value"])
-                        current_value << eval(m.evaluate)
-                        target_array["value"] = current_value.to_s
+                        current_value = target_array["value"]
+                        current_value << m.evaluate
+                        target_array["value"] = current_value
                     else
                         raise TypeError, "Array expected #{target_array["type"].split("_")[1]} but got a #{m.get_type()}"
                     end
@@ -144,14 +144,14 @@ class Node_array_remove < Node
             if target_array["const"] == false
 
                 if @index != "nil"
-                    index = eval(@index.evaluate)
-                    if index <= eval(target_array["value"]).size-1 && index >= 0 
+                    index = @index.evaluate
+                    if index <= target_array["value"].size-1 && index >= 0 
                         return_value = remove_index(target_array, index)
                     else
                         raise IndexError, "outofrange"
                     end
                 else
-                    return_value = remove_index(target_array, eval(target_array["value"]).size-1)
+                    return_value = remove_index(target_array, target_array["value"].size-1)
                 end
             else
                 raise "Variable with name #{@name} is const"
@@ -160,14 +160,14 @@ class Node_array_remove < Node
             raise TypeError, "Variable with the name #{@name} is not a Array"
         end
 
-        return target_array["type"].include?("char") ? "'"+return_value+"'" : return_value.to_s
+        return  return_value
     end
 
     def remove_index(target_array, index)
-        current_value = eval(target_array["value"])
+        current_value = target_array["value"]
         return_value = current_value[index]
         current_value.delete_at(index)
-        target_array["value"] = current_value.to_s
+        target_array["value"] = current_value
         return return_value
     end
 end
@@ -181,10 +181,10 @@ class Node_array_accessor < Node
     def evaluate()
         target_array = look_up_var(@name)
         return_value = "nil"
-        index = eval(@index.evaluate)
+        index = @index.evaluate
         if target_array["type"].include?("array")
-            if index <= eval(target_array["value"]).size-1 && index >= 0 
-                return_value = eval(target_array["value"])[index]
+            if index <= target_array["value"].size-1 && index >= 0 
+                return_value = target_array["value"][index]
             else
                 raise IndexError, "outofrange"
             end
@@ -192,7 +192,7 @@ class Node_array_accessor < Node
             raise TypeError, "Variable with the name #{@name} is not a Array"
         end
 
-        return target_array["type"].include?("char") ? "'"+return_value+"'" : return_value.to_s
+        return return_value
     end
 end
 
@@ -236,9 +236,9 @@ class Node_array < Node
                     raise TypeError, "Array expected #{@type.split("_")[1]} but got a #{m.get_type()}"
                 end
             end
-            output << eval(m.evaluate)
+            output << m.evaluate
         end
-        return output.to_s
+        return output
     end
 
     def update_type(type)
@@ -255,7 +255,7 @@ class Node_if < Node
     def evaluate
         new_scope()
         
-        if eval(@expression.evaluate)
+        if @expression.evaluate
             return_value = @statement_list.evaluate()
             close_scope()
             if @statement_list.is_a?(Node_return)
@@ -264,7 +264,7 @@ class Node_if < Node
             return return_value
         end
         close_scope()
-        "nil"
+        nil
     end
 end
 
@@ -276,11 +276,11 @@ class Node_while < Node
 
     def evaluate
         new_scope()       
-        while (eval(@expression.evaluate)) do
+        while @expression.evaluate do
             @statement_list.evaluate
         end
         close_scope()
-        "nil"
+        nil
     end
 end
 
@@ -369,7 +369,7 @@ class Node_re_assignment < Node
         else
             raise "Variable with name #{@name} not found in scope with variables: #{@@variable_stack[@@current_scope]}"
         end
-        "nil"
+        nil
     end
 end
 
@@ -384,7 +384,7 @@ class Node_function < Node
 
     def evaluate()
         @@function_stack[@@current_scope][@name] = self
-        "nil"
+        nil
     end
 end
 
@@ -432,7 +432,7 @@ class Node_function_call < Node
                 set_type(return_value)
                 return_value = return_value.evaluate
             else 
-                return_value = "nil"
+                return_value = nil
             end
             close_scope()
 
@@ -471,14 +471,24 @@ class Node_expression < Node
     end
 
     def evaluate()
+        lhs = @lhs.evaluate()
+        if !lhs.is_a?(String)
+            lhs = lhs.to_s
+        end
+        
+        rhs = @rhs.evaluate()
+        if !rhs.is_a?(String)
+            rhs = rhs.to_s
+        end
+
         if @lhs.get_type=="float" && @rhs.get_type == "int"
             @rhs.type = "float"
-            return eval(@lhs.evaluate() + @operator + @rhs.evaluate() + ".0").to_s
+            return eval(lhs + @operator + rhs + ".0")
         elsif @rhs.get_type=="float" && @lhs.get_type == "int"
             @lhs.type = "float"
-            return eval(@lhs.evaluate() + ".0" + @operator + @rhs.evaluate()).to_s
+            return eval(lhs + ".0" + @operator + rhs)
         elsif @lhs.get_type() == @rhs.get_type()
-            return eval(@lhs.evaluate() + @operator + @rhs.evaluate()).to_s
+            return eval(lhs + @operator + rhs)
         else
             raise TypeError, "#{@lhs} is not the same type as #{@rhs} in #{self} BOTTOM"
         end
@@ -496,5 +506,19 @@ class Node_logical_expression < Node_expression
 
     def get_type
         return @type
+    end
+end
+
+class Node_not
+    def initialize(value)
+        @value = value
+        @type = "bool"
+    end
+    def get_type()
+        return @type
+    end
+    def evaluate()
+ #      pp "Value in not_node: #{@value}"
+        return !@value.evaluate
     end
 end

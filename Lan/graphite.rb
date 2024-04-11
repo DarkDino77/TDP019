@@ -17,7 +17,7 @@ end
 
 def parse_code(data)
     time1 = Time.now
-    return_value = eval($l.language_parser.parse(data))
+    return_value = $l.language_parser.parse(data)
     time2 = Time.now
     elapsed_time = time2 - time1
     puts "Parse time: #{elapsed_time} seconds"
@@ -31,6 +31,7 @@ def execute(data)
     else
         output=parse_code(data)
         puts("Max parse time: #{$parse_times.max()} seconds")
+        puts("Average parse time: #{$parse_times.inject{ |sum, el| sum + el }.to_f / $parse_times.size} seconds")
         puts "===========================================================================\n\n"
         return output
     end

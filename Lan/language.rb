@@ -223,8 +223,7 @@ class LanguageParser
             end
 
             rule :logical_factor do
-                #återkom och fixa yep
-                match(:not, :logical_factor) {|_,m| Node_datatype.new(eval("!" + m.evaluate()).to_s, "bool")} 
+                match(:not, :logical_factor) {|_,m| Node_not.new(m)} 
                 match(:comparison_expression)
             end
 
@@ -264,8 +263,8 @@ class LanguageParser
                 match(:array_list)
                 match(:function_call)
                 match("-", "(", :expression, ")") {|_,_,m,_| 
-                    m.lhs.value = "-" + m.lhs.value
-                    m.rhs.value = "-" + m.rhs.value
+                    m.lhs.value = -m.lhs.value
+                    m.rhs.value = -m.rhs.value
                     m
                 }
                 match("(", :expression, ")") {|_,m,_| m }
