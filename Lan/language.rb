@@ -2,8 +2,12 @@
 require './rdparse.rb'
 require './node.rb'
 
+$debug = false
+
 class LanguageParser  
+
     attr_accessor :language_parser
+    attr_accessor :debug
     def initialize
         @language_parser = Parser.new("language parser") do
             token(/\s+/)
@@ -38,15 +42,20 @@ class LanguageParser
 
             start :program do
                 match(:statement_list) do |m|        
-                    # puts "================================[NODE TREE]================================"
-                    # pp m 
-                    # puts "\n"
-                    # time1 = Time.now
-                    return_value = m.evaluate
-                    # time2 = Time.now
-                    # elapsed_time = time2 - time1
-                    # puts "Evaluation time: \e[01m#{elapsed_time}\e[00m seconds"
+                    if $debug 
+                        puts "================================[NODE TREE]================================"
+                        pp m 
+                        puts "\n"
+                        time1 = Time.now
+                    end
 
+                    return_value = m.evaluate
+
+                    if $debug 
+                        time2 = Time.now
+                        elapsed_time = time2 - time1
+                        puts "Evaluation time: \e[01m#{elapsed_time}\e[00m seconds"
+                    end
                     return_value
                 end
             end
@@ -103,38 +112,33 @@ class LanguageParser
                 }
 
                 match(:array, :variable, "=",:array_list){|type, name, _, arr_list|
-                arr_list.update_type(type)
-                Node_assignment.new(type, name, arr_list)
+                    arr_list.update_type(type)
+                    Node_assignment.new(type, name, arr_list)
                 }
 
                 match(:array, :variable) {|type, name|
                     Node_assignment.new(type, name, Node_array.new(type, []))
                 }
 
-                match(:int_token, :variable, "=", :expression) {|_, name,_,value|
-                    Node_assignment.new("int", name, value)
+                match(:type, :variable, "=", :logical_expression) {|type, name,_,value|
+                    Node_assignment.new(type, name, value)
                 }
+
                 match(:int_token, :variable){|_,name|
                     value = Node_datatype.new("0","int")
                     Node_assignment.new("int", name, value)
                 }
-                match(:float_token, :variable, "=", :expression) {|_, name,_,value|
-                    Node_assignment.new("float", name, value)
-                }
+
                 match(:float_token, :variable){|_,name|
                     value = Node_datatype.new("0.0","float")
                     Node_assignment.new("float" , name, value)
                 }
-                match(:bool_token, :variable, "=", :logical_expression) {|_, name,_,value|
-                    Node_assignment.new("bool", name, value)
-                }
+
                 match(:bool_token, :variable){|_,name|
                     value = Node_datatype.new("true","bool")
                     Node_assignment.new("bool", name, value)
                 }
-                match(:char_token, :variable, "=", :atom) {|_, name,_,value|
-                    Node_assignment.new("char", name, value)
-                }
+
                 match(:char_token, :variable){|_,name|
                     value = Node_datatype.new("'a'","char")
                     Node_assignment.new("char", name, value)
@@ -182,20 +186,20 @@ class LanguageParser
             end
 
             rule :function_def do
-                match(:def, :array, :variable, "(", ")", "{",:statement_list, "}") {|_, type, name, _, _, _, stmt_list, _|
+                match(:def,  :function_def_type, :variable, "(", ")", "{",:statement_list, "}") {|_, type, name, _, _, _, stmt_list, _|
                     Node_function.new(name, [], stmt_list, type)}
-                match(:def, :array, :variable, "(", :assignment_list, ")", "{",:statement_list, "}") {|_, type, name, _, ass_list, _, _, stmt_list, _|
+                match(:def, :function_def_type, :variable, "(", :assignment_list, ")", "{",:statement_list, "}") {|_, type, name, _, ass_list, _, _, stmt_list, _|
                     Node_function.new(name, ass_list.flatten, stmt_list, type)} 
-                match(:def, :type, :variable, "(", ")", "{",:statement_list, "}") {|_, type, name, _, _, _, stmt_list, _|
-                    Node_function.new(name, [], stmt_list, type.name.split('_')[0])} # KANSKE FLYTTA SPLIT
-                match(:def, :type, :variable, "(", :assignment_list, ")", "{",:statement_list, "}") {|_, type, name, _, ass_list, _, _, stmt_list, _|
-                    Node_function.new(name, ass_list.flatten, stmt_list, type.name.split('_')[0])}
-                match(:def,:variable, "(", ")", "{",:statement_list, "}") {|_, name, _, _, _, stmt_list, _|
+                match(:def, :variable, "(", ")", "{",:statement_list, "}") {|_, name, _, _, _, stmt_list, _|
                     Node_function.new(name, [], stmt_list)}
-                match(:def,  :variable, "(", :assignment_list, ")", "{",:statement_list, "}") {|_, name, _, ass_list, _, _, stmt_list, _|
+                match(:def, :variable, "(", :assignment_list, ")", "{",:statement_list, "}") {|_, name, _, ass_list, _, _, stmt_list, _|
                     Node_function.new(name, ass_list.flatten, stmt_list)}
+            end
 
-                    # LÄGG TILL REGEL FÖR VOID
+            rule :function_def_type do 
+                match(:void_token){|m| m.name.split('_')[0] }
+                match(:array)
+                match(:type)
             end
 
             rule :assignment_list do
@@ -280,15 +284,14 @@ class LanguageParser
             end
 
             rule :array do
-                match(:type, :bracket_open, :bracket_close){|type| "array_"+type.name.split('_')[0]}
+                match(:type, :bracket_open, :bracket_close){|type| "array_"+type}
             end
 
             rule :type do
-                match(:int_token)
-                match(:float_token)
-                match(:bool_token)
-                match(:char_token)
-                match(:auto_token)
+                match(:int_token){|m| m.name.split('_')[0]}
+                match(:float_token){|m| m.name.split('_')[0]}
+                match(:bool_token){|m| m.name.split('_')[0]}
+                match(:char_token){|m| m.name.split('_')[0]}
             end
 
             rule :float do

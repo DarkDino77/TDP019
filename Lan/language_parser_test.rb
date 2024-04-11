@@ -215,6 +215,8 @@ class LanguageTest < Test::Unit::TestCase
 		assert_equal(nil, execute("def int fun_a(mod int a){mod int b = a+3;} fun_a(2);"))
 		assert_equal(9, execute("def int fun_a(mod int a, mod int b, int c){1+2; return(a+b+c);} fun_a(2,3,4);"))
 		assert_equal(9, execute("def int fun_a(mod int a, mod int b, int c){return(a+b+c);1+a;} fun_a(2,3,4);"))
+		assert_equal(nil, execute("def void fun_a(mod int a, mod int b, int c){1+a;} fun_a(2,3,4);"))
+		assert_equal(20, execute("mod int a = 10; def void mod_a(){a = 20;} mod_a(); a;"))
 	end
 
 	def test_auto_return_functions

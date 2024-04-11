@@ -305,8 +305,8 @@ class Node_assignment < Node
     attr_accessor :value
     def initialize(type, name, value)
         @name = name
-        @value = value
         @type = type
+        @value = value
         @const = true
     end
     
@@ -408,45 +408,51 @@ class Node_function_call < Node
 
     def evaluate()
         fun = look_up_fun(@name)
-        if fun != nil
-            if @variable_list.size != fun.variable_list.size
-                raise "Wrong number of arguments, #{fun.name} expected #{fun.variable_list.size} arguments"
-            end
-            counter = 0
-            @variable_list.each do |var|
-                if var.get_type != fun.variable_list[counter].get_type
-                    raise "#{fun.name} expected a #{fun.variable_list[counter].get_type} at index #{counter}"
-                end
-                fun.variable_list[counter].value = var
-                counter = counter + 1
-            end
 
-            new_scope()
-            
-            fun.variable_list.each do |var|
-                var.evaluate()
-            end
-
-            return_value = fun.function_body.evaluate
-            if fun.function_body.is_a?(Node_return)
-                set_type(fun.function_body)
-            elsif return_value.is_a?(Node_return)
-                set_type(return_value)
-                return_value = return_value.evaluate
-            else 
-                return_value = nil
-            end
-            close_scope()
-
-            return return_value
+        unless fun != nil
+            raise "The function with the name #{@name} does not exist"
         end
-        raise "The function with the name #{@name} does not exist"
+        
+        if @variable_list.size != fun.variable_list.size
+            raise "Wrong number of arguments, #{fun.name} expected #{fun.variable_list.size} arguments"
+        end
+        
+        counter = 0
+        @variable_list.each do |var|
+            if var.get_type != fun.variable_list[counter].get_type
+                raise "#{fun.name} expected a #{fun.variable_list[counter].get_type} at index #{counter}"
+            end
+            fun.variable_list[counter].value = var
+            counter = counter + 1
+        end
+
+        new_scope()
+        
+        fun.variable_list.each do |var|
+            var.evaluate()
+        end
+        
+        if @type == "void"
+            return nil
+        end
+
+        return_value = fun.function_body.evaluate
+        if fun.function_body.is_a?(Node_return)
+            set_type(fun.function_body)
+        elsif return_value.is_a?(Node_return)
+            set_type(return_value)
+            return_value = return_value.evaluate
+        else 
+            return_value = nil
+        end
+
+        close_scope()
+
+        return return_value
     end
 
     def set_type(value)
-        # if value.get_type == nil 
-        #     value.evaluate
-        # end
+
         @type = value.get_type
     end
 end
