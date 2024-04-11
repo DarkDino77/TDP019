@@ -28,4 +28,4 @@
 - 10/4 Dagen började med att debugga ett problem med implementationen av array funktioner när datatypen chars användes. Vi lät ruby evaluera värdet som var lagrat i arrayen, vilket fungerade för resterande datatyper, men vi lagrade chars med "'" tecken runt och ruby tog då bort dessa. Under eftermiddagen implementerade vi auto och detta var i princip lika enkelt som förväntat, minimal justering behövdes göras då vi kunde evaluera returnoden i get_type funktionen som användes i auto datatypen. Vi har även implementerat firstående scopes som fungerar på ungefär samma sätt som funktions-definitions kroppar. Det sista vi löste var att funktioner inte längre behöver defineras med en returtyp, vilket vi hade som ursprunglig tanke kring hur dem skulle skrivas.
 
 - 11/4
-changed how variables are stored to their respective values, skapade negativ- och not-nod, 0^0 = 1
+changed how variables are stored to their respective values, skapade negativ- och not-nod, 0^0 = 1. Ordnade om BNF, gjorde om Array-funktioner och lade till tester för expressions.
