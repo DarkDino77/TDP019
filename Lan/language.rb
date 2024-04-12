@@ -81,12 +81,6 @@ class LanguageParser
                 match(:variable_call, ";")
                 match(:standalone_scope)
             end
-            
-            rule :standalone_scope do
-                match("{",:statement_list,"}"){|_,stmt,_|
-                    Node_standalone_scope.new(stmt)
-                }    
-            end
 
             rule :return_statement do
                 match(:return, :logical_expression) {|_, expr| Node_return.new(expr)}
@@ -275,6 +269,12 @@ class LanguageParser
                 match(:variable,:bracket_open, :expression, :bracket_close){|name,_,index,_|
                     Node_array_accessor.new(name, index)}
                 match(:variable) {|m| Node_variable.new(m)}
+            end
+
+            rule :standalone_scope do
+                match("{",:statement_list,"}"){|_,stmt,_|
+                    Node_standalone_scope.new(stmt)
+                }    
             end
 
             rule :variable do
