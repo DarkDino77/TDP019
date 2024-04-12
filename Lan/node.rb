@@ -34,7 +34,6 @@ class Node
         raise "Variable with the name #{name} was not found in scope with variables: #{@@variable_stack[@@current_scope]}, all scopes: #{@@variable_stack}"
     end
 
-    # looks up wheter the variable exists in the current scope or any parrent scope
     def look_up_fun(name)
         stack_counter = @@function_stack.size-1    
         @@function_stack.reverse_each do |variables|
@@ -45,6 +44,13 @@ class Node
             stack_counter -=1
         end
         raise "Function with the name #{name} was not found, function stack: #{@@function_stack[0-@@current_scope]}"
+    end
+    
+    def true_or_false(value)
+        if value == 0 || (value.is_a?(Array) && value.empty?())
+            return false
+        end
+        return value
     end
 end
 
@@ -153,9 +159,6 @@ class Node_auto_assignment < Node_assignment
     end
 
     def evaluate
-        # if @value.get_type == "nil"
-        #     @value.evaluate
-        # end
         @type = @value.get_type
         super
     end
@@ -334,8 +337,7 @@ class Node_if < Node
     
     def evaluate
         new_scope()
-        
-        if @expression.evaluate
+        if true_or_false(@expression.evaluate)
             return_value = @statement_list.evaluate()
             close_scope()
             if @statement_list.is_a?(Node_return)
@@ -355,9 +357,9 @@ class Node_while < Node
     end
 
     def evaluate
-        new_scope()       
-        while @expression.evaluate do
-            @statement_list.evaluate
+        new_scope()
+        while true_or_false(@expression.evaluate) do
+            evaluated_expression = @statement_list.evaluate
         end
         close_scope()
         nil
@@ -489,14 +491,12 @@ class Node_expression < Node
         rhs_type = @rhs.get_type
 
         if lhs_type.include?("array") and rhs_type.include?("array")
-            pp "Hello"
             unless lhs.size == rhs.size
-                raise "Erör"
+                raise "Arithmetic operations between arrays with different sizes are not supported"
             end
 
             output_array = []
             for i in 1..lhs.size do
-                pp lhs
                 output_array << (Node_expression.new(Node_datatype.new(lhs[i-1].to_s, lhs_type.split("_")[1]), @operator, Node_datatype.new(rhs[i-1].to_s, rhs_type.split("_")[1])).evaluate)
             end
 
@@ -556,7 +556,46 @@ class Node_logical_expression < Node_expression
         rhs_type = @rhs.get_type
 
         if lhs_type.include?("array") and rhs_type.include?("array")
-            
+            lhs = lhs.empty? ?  false : true
+            rhs = rhs.empty? ?  false : true
+                
+            return Node_expression.new(Node_datatype.new(lhs.to_s, "bool"), @operator, Node_datatype.new(rhs.to_s, "bool")).evaluate
+        end
+
+        super()
+    end
+end
+
+class Node_comparison_expression < Node_expression
+    attr_accessor :operator, :lhs, :rhs, :type
+    def initialize(lhs, operator, rhs)
+        @lhs = lhs
+        @operator = operator
+        @rhs = rhs
+        @type = "bool"
+    end
+
+    def get_type
+        return @type
+    end
+
+    def evaluate()
+        lhs = @lhs.evaluate()
+        rhs = @rhs.evaluate()
+        
+        lhs_type = @lhs.get_type
+        rhs_type = @rhs.get_type
+
+        if lhs_type.include?("array") and rhs_type.include?("array")
+            min = lhs.size >= rhs.size ? rhs.size : lhs.size
+
+            for i in 1..min do
+                if lhs[i-1] != rhs[i-1]
+                    return Node_expression.new(Node_datatype.new(lhs[i-1].to_s, lhs_type.split("_")[1]), @operator, Node_datatype.new(rhs[i-1].to_s, rhs_type.split("_")[1])).evaluate
+                end
+            end
+
+            return Node_expression.new(Node_datatype.new(lhs.size.to_s, "int"), @operator, Node_datatype.new(rhs.size.to_s, "int")).evaluate
         end
 
         super()
@@ -572,7 +611,6 @@ class Node_not < Node
         return @type
     end
     def evaluate()
- #      pp "Value in not_node: #{@value}"
         return !@value.evaluate
     end
 end

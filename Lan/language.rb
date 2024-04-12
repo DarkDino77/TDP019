@@ -18,8 +18,8 @@ class LanguageParser
             token(/\bprint\b/) {:print}
             token(/\btrue\b/) {:true}
             token(/\bfalse\b/) {:false}
-            token(/\band\b|&&/) {:and}
-            token(/\bor\b|\|\|/) {:or}
+            token(/(\band\b|&&)/) {:and}
+            token(/(\bor\b|\|\|)/) {:or}
             token(/\bnot\b/) {:not}
             token(/\bmod\b/) {:mod}
             token(/\bint\b/) {:int_token}
@@ -61,8 +61,7 @@ class LanguageParser
             end
 
             rule :statement_list do 
-                match(:statement, :statement_list){|stm, stm_l| 
-                    Node_statement_list.new(stm, stm_l)}
+                match(:statement, :statement_list){|stm, stm_l| Node_statement_list.new(stm, stm_l)}
                 match(:statement) {|stm| Node_statement_list.new(stm)}
             end
 
@@ -217,7 +216,7 @@ class LanguageParser
             end
 
             rule :comparison_expression do
-                match(:expression, :comparison_operator, :expression)  {|a,b,c| Node_logical_expression.new(a,b,c)}
+                match(:expression, :comparison_operator, :expression)  {|a,b,c| Node_comparison_expression.new(a,b,c)}
                 match(:expression)
             end
 
