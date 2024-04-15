@@ -469,6 +469,7 @@ class LanguageTest < Test::Unit::TestCase
 		assert_equal([1, 5], execute("def int ret_5(){return 5;} int[] arr_a = [1,ret_5()];"))
 		assert_equal([1, [5, 6]], execute("def int[] ret_5(){int[] arr_b = [5, 6]; return arr_b;} int[] arr_a = [1,ret_5()];"))
 		assert_equal([1, [5, 6]], execute("int[] arr_a = [1,[5,6]];"))
+		assert_equal([[5, 6], 1], execute("int[] arr_a = [[5,6],1];"))
 		assert_raise(TypeError) { execute("int[] arr_a = [1,[5,true]];") }
 		assert_raise(TypeError) { execute("int[] arr_a = [1,2, true];") }
 		assert_raise(TypeError) { execute("bool[] arr_a = [true,false, 1+3];") }
@@ -476,7 +477,9 @@ class LanguageTest < Test::Unit::TestCase
 	end
 	
 	def test_array_arithmetics
+		assert_equal([2,4,6], execute("int[] arr_a = [[1],2,3]; int[] arr_b = [[1],2,3]; arr_a + arr_b;"))
 		assert_equal([2,4,6], execute("int[] arr_a = [1,2,3]; int[] arr_b = [1,2,3]; arr_a + arr_b;"))
+		assert_equal([2,4,6], execute("int[] arr_a = [[1],2,3]; int[] arr_b = [[1],2,3]; arr_a + arr_b;"))
 		#assert_equal([2,4,6], execute("bool[] arr_a = [true,true,true]; bool[] arr_b = [true,true,true]; arr_a + arr_b;"))
 		assert_equal([0,0,0], execute("int[] arr_a = [1,2,3]; int[] arr_b = [1,2,3]; arr_a - arr_b;"))
 		assert_equal([1,4,9], execute("int[] arr_a = [1,2,3]; int[] arr_b = [1,2,3]; arr_a * arr_b;"))
@@ -484,6 +487,7 @@ class LanguageTest < Test::Unit::TestCase
 		assert_equal([0,0,0], execute("int[] arr_a = [1,2,3]; int[] arr_b = [1,2,3]; arr_a % arr_b;"))
 		assert_equal([1,4,27], execute("int[] arr_a = [1,2,3]; int[] arr_b = [1,2,3]; arr_a ** arr_b;"))
 		assert_equal(false, execute("int[] arr_a = [1,2,3]; int[] arr_b = [1,2,3]; arr_a < arr_b;"))
+		assert_equal(true, execute("int[] arr_a = [[4],9]; int[] arr_b = [[4,2],9]; arr_a < arr_b;"))
 		assert_equal(false, execute("int[] arr_a = [1,2,3]; int[] arr_b = [1,2,3]; arr_a > arr_b;"))
 		assert_equal(true, execute("int[] arr_a = [1,2,3]; int[] arr_b = [1,2,3]; arr_a >= arr_b;"))
 		assert_equal(true, execute("int[] arr_a = [1,2,3]; int[] arr_b = [1,2,3]; arr_a <= arr_b;"))
@@ -578,5 +582,5 @@ class LanguageTest < Test::Unit::TestCase
 		# Error cases
 		assert_raise(TypeError) { execute("mod bool[] a = []; a.add('t');")}
 		assert_raise(IndexError) { execute("mod bool[] a = [true,false,true]; a[3];")}
-	  end	  
+	  end
 end

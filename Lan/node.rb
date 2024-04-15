@@ -489,15 +489,21 @@ class Node_expression < Node
         
         lhs_type = @lhs.get_type
         rhs_type = @rhs.get_type
-
+      #  pp lhs, rhs
         if lhs_type.include?("array") and rhs_type.include?("array")
-            unless lhs.size == rhs.size
+            #pp "hello"
+            if lhs.size != rhs.size
                 raise "Arithmetic operations between arrays with different sizes are not supported"
             end
 
             output_array = []
             for i in 1..lhs.size do
-                output_array << (Node_expression.new(Node_datatype.new(lhs[i-1].to_s, lhs_type.split("_")[1]), @operator, Node_datatype.new(rhs[i-1].to_s, rhs_type.split("_")[1])).evaluate)
+             #   pp "lhs: #{lhs[i-1].is_a?(Array)}"
+                if lhs[i-1].is_a?(Array) and rhs[i-1].is_a?(Array)
+                    output_array << (Node_expression.new(Node_datatype.new(lhs[i-1].to_s, lhs_type.split("_")[1]), @operator, Node_datatype.new(rhs[i-1].to_s, rhs_type.split("_")[1])).evaluate)
+                else
+                    output_array << (Node_expression.new(Node_datatype.new(lhs[i-1].to_s, lhs_type.split("_")[1]), @operator, Node_datatype.new(rhs[i-1].to_s, rhs_type.split("_")[1])).evaluate)
+                end
             end
 
             return output_array
@@ -587,7 +593,11 @@ class Node_comparison_expression < Node_expression
         rhs_type = @rhs.get_type
 
         if lhs_type.include?("array") and rhs_type.include?("array")
+            lhs = lhs.flatten
+            rhs = rhs.flatten
             min = lhs.size >= rhs.size ? rhs.size : lhs.size
+
+            pp "lhs: #{lhs} rhs: #{rhs}"
 
             for i in 1..min do
                 if lhs[i-1] != rhs[i-1]
