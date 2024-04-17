@@ -477,9 +477,13 @@ class LanguageTest < Test::Unit::TestCase
 	end
 	
 	def test_array_arithmetics
-		assert_equal([2,4,6], execute("int[] arr_a = [[1],2,3]; int[] arr_b = [[1],2,3]; arr_a + arr_b;"))
+		# assert_raise(TypeError) { execute("int[] arr_a = [1,2,3]; int b = 1; arr_a + b;") }
+
+		assert_equal([[2],4,6], execute("int[] arr_a = [[1],2,3]; int[] arr_b = [[1],2,3]; arr_a + arr_b;"))
+		assert_equal([[2,4],4,6], execute("int[] arr_a = [[1,2],2,3]; int[] arr_b = [[1,2],2,3]; arr_a + arr_b;"))
+		assert_equal([[2,[2]],4,6], execute("int[] arr_a = [[1,[1]],2,3]; int[] arr_b = [[1,[1]],2,3]; arr_a + arr_b;"))
 		assert_equal([2,4,6], execute("int[] arr_a = [1,2,3]; int[] arr_b = [1,2,3]; arr_a + arr_b;"))
-		assert_equal([2,4,6], execute("int[] arr_a = [[1],2,3]; int[] arr_b = [[1],2,3]; arr_a + arr_b;"))
+		assert_equal([[2],4,6], execute("int[] arr_a = [[1],2,3]; int[] arr_b = [[1],2,3]; arr_a + arr_b;"))
 		#assert_equal([2,4,6], execute("bool[] arr_a = [true,true,true]; bool[] arr_b = [true,true,true]; arr_a + arr_b;"))
 		assert_equal([0,0,0], execute("int[] arr_a = [1,2,3]; int[] arr_b = [1,2,3]; arr_a - arr_b;"))
 		assert_equal([1,4,9], execute("int[] arr_a = [1,2,3]; int[] arr_b = [1,2,3]; arr_a * arr_b;"))
@@ -487,6 +491,7 @@ class LanguageTest < Test::Unit::TestCase
 		assert_equal([0,0,0], execute("int[] arr_a = [1,2,3]; int[] arr_b = [1,2,3]; arr_a % arr_b;"))
 		assert_equal([1,4,27], execute("int[] arr_a = [1,2,3]; int[] arr_b = [1,2,3]; arr_a ** arr_b;"))
 		assert_equal(false, execute("int[] arr_a = [1,2,3]; int[] arr_b = [1,2,3]; arr_a < arr_b;"))
+		assert_equal(true, execute("int[] arr_a = [4,1]; int[] arr_b = [4]; arr_a > arr_b;"))
 		assert_equal(true, execute("int[] arr_a = [[4],9]; int[] arr_b = [[4,2],9]; arr_a < arr_b;"))
 		assert_equal(false, execute("int[] arr_a = [1,2,3]; int[] arr_b = [1,2,3]; arr_a > arr_b;"))
 		assert_equal(true, execute("int[] arr_a = [1,2,3]; int[] arr_b = [1,2,3]; arr_a >= arr_b;"))
@@ -583,4 +588,13 @@ class LanguageTest < Test::Unit::TestCase
 		assert_raise(TypeError) { execute("mod bool[] a = []; a.add('t');")}
 		assert_raise(IndexError) { execute("mod bool[] a = [true,false,true]; a[3];")}
 	  end
+
+	def test_more_arrays
+		assert_equal(true, execute("[true] > [];"))
+
+		# assert_equal(['a'], execute("['a'];"))
+		# assert_equal(true, execute("['a'] < ['b'];"))
+		assert_equal(true, execute("[] < [1];"))
+
+	end
 end

@@ -208,7 +208,6 @@ class Node_array < Node
 
     def evaluate()
         output = []
-        
         @values.each do |m|
             if m.is_a?(Node_array) && m.get_type == "nil"
                 m.update_type("array_"+m.values[0].get_type)
@@ -483,24 +482,48 @@ class Node_expression < Node
         end
     end
 
+    def array_construction(element, type)
+        element_arr_list = []
+
+        element.each do |sub_element|
+            if sub_element.is_a? (Array)
+                element_arr_list << Node_array.new(type, array_construction(sub_element, type))
+            else
+                element_arr_list << Node_datatype.new(sub_element.to_s,type.split("_")[1])     
+            end             
+        end
+        return element_arr_list
+    end
+
     def evaluate()
         lhs = @lhs.evaluate()
         rhs = @rhs.evaluate()
         
         lhs_type = @lhs.get_type
         rhs_type = @rhs.get_type
-      #  pp lhs, rhs
+        pp lhs, rhs,lhs_type, rhs_type
         if lhs_type.include?("array") and rhs_type.include?("array")
-            #pp "hello"
             if lhs.size != rhs.size
                 raise "Arithmetic operations between arrays with different sizes are not supported"
             end
 
             output_array = []
+
             for i in 1..lhs.size do
-             #   pp "lhs: #{lhs[i-1].is_a?(Array)}"
                 if lhs[i-1].is_a?(Array) and rhs[i-1].is_a?(Array)
-                    output_array << (Node_expression.new(Node_datatype.new(lhs[i-1].to_s, lhs_type.split("_")[1]), @operator, Node_datatype.new(rhs[i-1].to_s, rhs_type.split("_")[1])).evaluate)
+
+                    # Room for improvement
+                    pp "lhs: #{lhs[i-1]}, rhs: #{rhs[i-1]}"
+
+                    lhs_arr_list = array_construction(lhs[i-1],lhs_type)
+                    rhs_arr_list = array_construction(rhs[i-1],rhs_type)
+
+                    pp lhs_arr_list
+                    lhs_array = Node_array.new(lhs_type, lhs_arr_list)
+                    rhs_array = Node_array.new(rhs_type, rhs_arr_list)
+
+
+                    output_array << (Node_expression.new(lhs_array, @operator, rhs_array).evaluate)
                 else
                     output_array << (Node_expression.new(Node_datatype.new(lhs[i-1].to_s, lhs_type.split("_")[1]), @operator, Node_datatype.new(rhs[i-1].to_s, rhs_type.split("_")[1])).evaluate)
                 end
@@ -529,11 +552,14 @@ class Node_expression < Node
             @lhs.type = "float"
             return eval(lhs + ".0" + @operator + rhs)
 
+        # elsif get_type === "bool"
+        #     return eval(true_or_false(lhs) + @operator + true_or_false(rhs))            
+            
         elsif lhs_type == rhs_type
             if lhs_type === "char"
                 return eval("'" + lhs + "'" + @operator + "'" + rhs + "'")
             end
-
+        
             return eval(lhs + @operator + rhs)
         else
             raise TypeError, "#{@lhs} is not the same type as #{@rhs} in #{self}"
@@ -592,19 +618,25 @@ class Node_comparison_expression < Node_expression
         lhs_type = @lhs.get_type
         rhs_type = @rhs.get_type
 
-        if lhs_type.include?("array") and rhs_type.include?("array")
-            lhs = lhs.flatten
-            rhs = rhs.flatten
+        if (lhs_type.include?("array")||lhs_type == "nil") and (rhs_type.include?("array")||rhs_type == "nil")
             min = lhs.size >= rhs.size ? rhs.size : lhs.size
-
-            pp "lhs: #{lhs} rhs: #{rhs}"
 
             for i in 1..min do
                 if lhs[i-1] != rhs[i-1]
-                    return Node_expression.new(Node_datatype.new(lhs[i-1].to_s, lhs_type.split("_")[1]), @operator, Node_datatype.new(rhs[i-1].to_s, rhs_type.split("_")[1])).evaluate
+                    if lhs[i-1].is_a?(Array) and rhs[i-1].is_a?(Array)
+                        lhs_arr_list = array_construction(lhs[i-1],lhs_type)
+                        rhs_arr_list = array_construction(rhs[i-1],rhs_type)
+    
+                        pp lhs_arr_list
+                        lhs_array = Node_array.new(lhs_type, lhs_arr_list)
+                        rhs_array = Node_array.new(rhs_type, rhs_arr_list)
+    
+                        return (Node_comparison_expression.new(lhs_array, @operator, rhs_array).evaluate)
+                    else
+                        return Node_expression.new(Node_datatype.new(lhs[i-1].to_s, lhs_type.split("_")[1]), @operator, Node_datatype.new(rhs[i-1].to_s, rhs_type.split("_")[1])).evaluate
+                    end
                 end
             end
-
             return Node_expression.new(Node_datatype.new(lhs.size.to_s, "int"), @operator, Node_datatype.new(rhs.size.to_s, "int")).evaluate
         end
 

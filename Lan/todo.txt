@@ -14,7 +14,11 @@
 
 
 
-
+mod auto a = [];
+=> []
+[Graphite] a;
+=> []
+[Graphite] a.add(10);
 
 
 
