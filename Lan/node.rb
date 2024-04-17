@@ -217,7 +217,7 @@ class Node_array < Node
             end
             if m.get_type != @type  
                 if m.get_type() != @type.split("_")[1]
-                    pp @type
+                   # pp @type
                     raise TypeError, "Array expected #{@type.split("_")[1]} but got a #{m.get_type()}"
                 end
             end
@@ -246,7 +246,7 @@ class Node_array_accessor < Node
 
 
         if @index.size == 2
-            pp " tryig: #{target_array["value"][index]} [#{@index[1].evaluate}]"
+            #pp " tryig: #{target_array["value"][index]} [#{@index[1].evaluate}]"
             # pp "First: #{target_array["value"][index]}, second: #{@index[1].evaluate}"
             index = target_array["value"][index][@index[1].evaluate]
         end
@@ -275,45 +275,52 @@ class Node_array_accessor < Node
     def evaluate()
         target_array = look_up_var(@name)
         return_value = "nil"
-
-        index = @index[0].evaluate # [0] -> [-1]
-
-        if @index.size == 2
-            # pp " tryig: #{target_array["value"][index]} [#{@index[1].evaluate}]"
-            return target_array["value"][index][@index[1].evaluate]
-        end
-
+        index = @index[0].evaluate
         unless target_array["type"].include?("array")
             raise TypeError, "Variable with the name #{@name} is not a Array"
         end
 
         unless index <= target_array["value"].size-1 && index >= 0
-            if @index.size == 1
-                raise IndexError, "outofrange"
-            end
+            raise IndexError, "outofrange"
         end
+        #check_errors(target_array, @index[0])
 
         return_value = target_array["value"][index]
+        
+        for i in 1..@index.size-1 do
+            index = @index[i].evaluate
+            unless return_value.is_a?(Array)
+                raise TypeError, "Variable with the name #{@name} is not a Array"
+            end
+
+            unless index <= return_value.size-1 && index >= 0
+                raise IndexError, "outofrange"
+            end
+
+            return_value = return_value[index]
+        end
+        # if @index.size == 2
+        #     # pp " tryig: #{target_array["value"][index]} [#{@index[1].evaluate}]"
+        #     return target_array["value"][index][@index[1].evaluate]
+        # end
+
+        # unless target_array["type"].include?("array")
+        #     raise TypeError, "Variable with the name #{@name} is not a Array"
+        # end
+
+        # unless index <= target_array["value"].size-1 && index >= 0
+        #     if @index.size == 1
+        #         raise IndexError, "outofrange"
+        #     end
+        # end
+
+        # return_value = target_array["value"][index]
 
         return return_value
     end
 
-    def temp_recursive(target_array)
-        if @index.size == 2
-            pp " tryig: #{target_array["value"][index]} [#{@index[1].evaluate}]"
-            return target_array["value"][index][@index[1].evaluate]
-        end
 
-        unless target_array["type"].include?("array")
-            raise TypeError, "Variable with the name #{@name} is not a Array"
-        end
 
-        unless index <= target_array["value"].size-1 && index >= 0
-            if @index.size == 1
-                raise IndexError, "outofrange"
-            end
-        end
-    end
 end
 
 
@@ -375,8 +382,10 @@ class Node_array_remove < Node
 
         if @index != "nil"
             index = @index.evaluate
-            unless index <= target_array["value"].size-1 && index >= 0 
-                raise IndexError, "Index out of range for array with the name #{@target_variable.name}"
+            unless index <= target_array["value"].size-1 && index >= 0
+                if @target_variable.is_a?(Node_variable)
+                    raise IndexError, "Index out of range for array with the name #{@target_variable.name}"
+                end
             end
             return_value = remove_index(index)
         else
@@ -701,12 +710,17 @@ class Node_comparison_expression < Node_expression
     
                         return (Node_comparison_expression.new(lhs_array, @operator, rhs_array).evaluate)
                     else
+                        if lhs_type.include?("char")
+                            return Node_expression.new(Node_datatype.new(("'"+lhs[i-1]+"'"), lhs_type.split("_")[1]), @operator, Node_datatype.new(("'"+rhs[i-1]+"'"), rhs_type.split("_")[1])).evaluate
+                        end
                         return Node_expression.new(Node_datatype.new(lhs[i-1].to_s, lhs_type.split("_")[1]), @operator, Node_datatype.new(rhs[i-1].to_s, rhs_type.split("_")[1])).evaluate
                     end
                 end
             end
             return Node_expression.new(Node_datatype.new(lhs.size.to_s, "int"), @operator, Node_datatype.new(rhs.size.to_s, "int")).evaluate
         end
+
+        
 
         super()
     end

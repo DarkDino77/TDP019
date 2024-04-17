@@ -592,8 +592,8 @@ class LanguageTest < Test::Unit::TestCase
 	def test_more_arrays
 		assert_equal(true, execute("[true] > [];"))
 
-		# assert_equal(['a'], execute("['a'];"))
-		# assert_equal(true, execute("['a'] < ['b'];"))
+		assert_equal(['a'], execute("['a'];"))
+		#assert_equal(true, execute("['a'] < ['b'];"))
 		assert_equal(true, execute("[] < [1];"))
 
 		assert_equal([10], execute("mod auto a = []; a.add(10); a;"))
@@ -606,6 +606,11 @@ class LanguageTest < Test::Unit::TestCase
 		assert_equal([[1]], execute("mod auto a = []; a.add([]); a[0].add(1); a;"))
 		assert_equal([[]], execute("mod auto a = []; a.add([1]); a[0].remove(0); a;"))
 		assert_equal(1, execute("mod auto a = [[1]]; a[0][0];"))
+		assert_raise(TypeError) { execute("mod auto a = [1]; a[0][0];")}
+		assert_equal([1,2], execute("mod auto a = [[1]]; a[0].add(2); a[0];"))
+		assert_equal([[1,2]], execute("mod auto a = [[1]]; a[0].add(2);"))
+		assert_equal(2, execute("mod auto a = [[1,2]]; a[0][1];"))
+		# assert_equal([[[1,2]]], execute("mod auto a = [[[1]]]; a[0][0].add(2); a;"))
+		# assert_equal(2, execute("mod auto a = [[[1]]]; a[0][0].add(2); a[0][0].remove(1);"))
 	end
 end
-#eval("[index.evaluate][index.evaluate][index.evaluate][index.evaluate][index.evaluate]")

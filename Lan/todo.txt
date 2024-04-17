@@ -1,24 +1,12 @@
 [ ] Print
-[x] ta bort returtyper ELLER specifiera en void-returtyp
-[x] Array funktioner (add, remove, get/change)
 [ ] int_token ska returnera "int"
 
-[x] Auto
-[x] Inget krav på returtyper för funktioner
-[x] Scopes { }
 [ ] Fixa strings om vi orkar
 [ ] Uppdatera BNF
 [ ] Slipa på koden + skriva tester 
         get_type till node?
 
-
-
-
-mod auto a = [];
-=> []
-[Graphite] a;
-=> []
-[Graphite] a.add(10);
+assert_equal([[[1,2]]], execute("mod auto a = [[[1]]]; a[0][0].add(2); a;")) LÅNGSAMT
 
 
 
