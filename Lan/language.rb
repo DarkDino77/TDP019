@@ -86,11 +86,11 @@ class LanguageParser
             end
 
             rule :array_function do
-                match(:variable,"." ,:add,"(",:variable_list,")"){|name,_,_,_,var,_|
+                match(:variable_call,"." ,:add,"(",:variable_list,")"){|name,_,_,_,var,_|
                     Node_array_add.new(name,var.flatten)}    
-                match(:variable,"." ,:remove,"(",:expression,")"){|name,_,_,_,index,_|
+                match(:variable_call,"." ,:remove,"(",:expression,")"){|name,_,_,_,index,_|
                     Node_array_remove.new(name, index)}
-                match(:variable,"." ,:remove,"(",")"){|name,_,_,_,_|
+                match(:variable_call,"." ,:remove,"(",")"){|name,_,_,_,_|
                     Node_array_remove.new(name)}
             end
 
@@ -265,9 +265,14 @@ class LanguageParser
             end
 
             rule :variable_call do
-                match(:variable,:bracket_open, :expression, :bracket_close){|name,_,index,_|
-                    Node_array_accessor.new(name, index)}
+                match(:variable,:array_accessor){|name,index|
+                    Node_array_accessor.new(name, index.flatten)}
                 match(:variable) {|m| Node_variable.new(m)}
+            end
+
+            rule :array_accessor do 
+                match(:bracket_open, :expression, :bracket_close, :array_accessor) {|_, m, _, n| [m] << [n]}
+                match(:bracket_open, :expression, :bracket_close) {|_,m,_| [m]}
             end
 
             rule :standalone_scope do

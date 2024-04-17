@@ -596,5 +596,16 @@ class LanguageTest < Test::Unit::TestCase
 		# assert_equal(true, execute("['a'] < ['b'];"))
 		assert_equal(true, execute("[] < [1];"))
 
+		assert_equal([10], execute("mod auto a = []; a.add(10); a;"))
+		assert_equal([10.0], execute("mod auto a = []; a.add(10.0); a;"))
+		assert_equal(["a"], execute("mod auto a = []; a.add('a'); a;"))
+		assert_equal([true], execute("mod auto a = []; a.add(true); a;"))
+		assert_equal([[]], execute("mod auto a = []; a.add([]); a;"))
+		assert_equal([[],1], execute("mod auto a = []; a.add([]); a.add(1); a;"))
+		assert_equal([[],[]], execute("mod auto a = []; a.add([]); a.add([]); a;"))
+		assert_equal([[1]], execute("mod auto a = []; a.add([]); a[0].add(1); a;"))
+		assert_equal([[]], execute("mod auto a = []; a.add([1]); a[0].remove(0); a;"))
+		assert_equal(1, execute("mod auto a = [[1]]; a[0][0];"))
 	end
 end
+#eval("[index.evaluate][index.evaluate][index.evaluate][index.evaluate][index.evaluate]")

@@ -213,10 +213,11 @@ class Node_array < Node
                 m.update_type("array_"+m.values[0].get_type)
             end
             if @type === "nil"
-                update_type("array_"+m.get_type)
+                update_type(m.get_type.include?("array") ? m.get_type : "array_"+m.get_type)
             end
             if m.get_type != @type  
                 if m.get_type() != @type.split("_")[1]
+                    pp @type
                     raise TypeError, "Array expected #{@type.split("_")[1]} but got a #{m.get_type()}"
                 end
             end
@@ -231,6 +232,7 @@ class Node_array < Node
 end
 
 class Node_array_accessor < Node
+    attr_accessor :name, :index
     def initialize(name, index)
         @name = name
         @index = index
@@ -239,7 +241,15 @@ class Node_array_accessor < Node
     def evaluate()
         target_array = look_up_var(@name)
         return_value = "nil"
-        index = @index.evaluate
+
+        index = @index[0].evaluate # [0] -> [-1]
+
+
+        if @index.size == 2
+            pp " tryig: #{target_array["value"][index]} [#{@index[1].evaluate}]"
+            # pp "First: #{target_array["value"][index]}, second: #{@index[1].evaluate}"
+            index = target_array["value"][index][@index[1].evaluate]
+        end
 
         unless target_array["type"].include?("array")
             raise TypeError, "Variable with the name #{@name} is not a Array"
@@ -255,21 +265,78 @@ class Node_array_accessor < Node
     end
 end
 
-class Node_array_add < Node
-    def initialize(name, var)
+class Node_array_accessor < Node
+    attr_accessor :name, :index
+    def initialize(name, index)
         @name = name
-        @var = var
+        @index = index
     end
 
     def evaluate()
         target_array = look_up_var(@name)
+        return_value = "nil"
+
+        index = @index[0].evaluate # [0] -> [-1]
+
+        if @index.size == 2
+            # pp " tryig: #{target_array["value"][index]} [#{@index[1].evaluate}]"
+            return target_array["value"][index][@index[1].evaluate]
+        end
 
         unless target_array["type"].include?("array")
-            raise TypeError, "Variable with the name #{@name} is not an Array"
+            raise TypeError, "Variable with the name #{@name} is not a Array"
+        end
+
+        unless index <= target_array["value"].size-1 && index >= 0
+            if @index.size == 1
+                raise IndexError, "outofrange"
+            end
+        end
+
+        return_value = target_array["value"][index]
+
+        return return_value
+    end
+
+    def temp_recursive(target_array)
+        if @index.size == 2
+            pp " tryig: #{target_array["value"][index]} [#{@index[1].evaluate}]"
+            return target_array["value"][index][@index[1].evaluate]
+        end
+
+        unless target_array["type"].include?("array")
+            raise TypeError, "Variable with the name #{@name} is not a Array"
+        end
+
+        unless index <= target_array["value"].size-1 && index >= 0
+            if @index.size == 1
+                raise IndexError, "outofrange"
+            end
+        end
+    end
+end
+
+
+
+class Node_array_add < Node
+    def initialize(target_variable, var)
+        @target_variable = target_variable
+        @var = var
+    end
+
+    def evaluate()
+        target_array = look_up_var(@target_variable.name)
+
+        unless target_array["type"].include?("array") || target_array["type"] == "nil"
+            raise TypeError, "Variable with the name #{@target_variable.name} is not an Array"
         end
 
         if target_array["const"]
-            raise "Variable with name #{@name} is const and cannot be modified"
+            raise "Variable with name #{@target_variable.name} is const and cannot be modified"
+        end
+
+        if target_array["type"] == "nil" && @var[0].get_type != "nil"
+            target_array["type"] = "array_" + @var[0].get_type 
         end
 
         @var.each do |m|
@@ -279,50 +346,51 @@ class Node_array_add < Node
         end
 
         @var.each do |m|
-            target_array["value"] << m.evaluate
+            @target_variable.evaluate << m.evaluate
         end
 
         target_array["value"]
     end
 end
 
+
+
 class Node_array_remove < Node
-    def initialize(name, index = "nil")
-        @name = name
+    def initialize(target_variable, index = "nil")
+        @target_variable = target_variable
         @index = index
     end
     
     def evaluate()
-        target_array = look_up_var(@name)
+        target_array = look_up_var(@target_variable.name)
         return_value = "nil"
-        
 
         unless target_array["type"].include?("array")
-            raise TypeError, "Variable with the name #{@name} is not a Array"
+            raise TypeError, "Variable with the name #{@target_variable.name} is not a Array"
         end
 
         if target_array["const"]
-            raise "Variable with name #{@name} is const and cannot be modified"
+            raise "Variable with name #{@target_variable.name} is const and cannot be modified"
         end
 
         if @index != "nil"
             index = @index.evaluate
             unless index <= target_array["value"].size-1 && index >= 0 
-                raise IndexError, "Index out of range for array with the name #{@name}"
+                raise IndexError, "Index out of range for array with the name #{@target_variable.name}"
             end
-            return_value = remove_index(target_array, index)
+            return_value = remove_index(index)
         else
-            return_value = remove_index(target_array, target_array["value"].size-1)
+            return_value = remove_index(target_array["value"].size-1)
         end
 
         return  return_value
     end
 
-    def remove_index(target_array, index)
-        current_value = target_array["value"]
+    def remove_index(index)
+        current_value = @target_variable.evaluate
         return_value = current_value[index]
         current_value.delete_at(index)
-        target_array["value"] = current_value
+
         return return_value
     end
 end
@@ -428,6 +496,7 @@ class Node_function_call < Node
         end
 
         return_value = fun.function_body.evaluate
+
         if fun.function_body.is_a?(Node_return)
             set_type(fun.function_body)
         elsif return_value.is_a?(Node_return)
@@ -501,7 +570,7 @@ class Node_expression < Node
         
         lhs_type = @lhs.get_type
         rhs_type = @rhs.get_type
-        pp lhs, rhs,lhs_type, rhs_type
+        # pp lhs, rhs,lhs_type, rhs_type
         if lhs_type.include?("array") and rhs_type.include?("array")
             if lhs.size != rhs.size
                 raise "Arithmetic operations between arrays with different sizes are not supported"
@@ -513,12 +582,12 @@ class Node_expression < Node
                 if lhs[i-1].is_a?(Array) and rhs[i-1].is_a?(Array)
 
                     # Room for improvement
-                    pp "lhs: #{lhs[i-1]}, rhs: #{rhs[i-1]}"
+                    # pp "lhs: #{lhs[i-1]}, rhs: #{rhs[i-1]}"
 
                     lhs_arr_list = array_construction(lhs[i-1],lhs_type)
                     rhs_arr_list = array_construction(rhs[i-1],rhs_type)
 
-                    pp lhs_arr_list
+                    # pp lhs_arr_list
                     lhs_array = Node_array.new(lhs_type, lhs_arr_list)
                     rhs_array = Node_array.new(rhs_type, rhs_arr_list)
 
@@ -627,7 +696,6 @@ class Node_comparison_expression < Node_expression
                         lhs_arr_list = array_construction(lhs[i-1],lhs_type)
                         rhs_arr_list = array_construction(rhs[i-1],rhs_type)
     
-                        pp lhs_arr_list
                         lhs_array = Node_array.new(lhs_type, lhs_arr_list)
                         rhs_array = Node_array.new(rhs_type, rhs_arr_list)
     
