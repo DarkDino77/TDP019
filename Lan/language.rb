@@ -27,6 +27,10 @@ class LanguageParser
             token(/\bbool\b/) {:bool_token}
             token(/\bauto\b/) {:auto_token}
             token(/\bvoid\b/) {:void_token}
+            token(/\bto_c\b/) {:to_char}
+            token(/\bto_i\b/) {:to_int}
+            token(/\bto_f\b/) {:to_float}
+            token(/\bto_b\b/) {:to_bool}
             token(/\breturn\b/) {:return}
             token(/\bif\b/) {:if}
             token(/\bwhile\b/) {:while}
@@ -69,6 +73,7 @@ class LanguageParser
                 match(:print, "(", :variable_call, ")", ";") {|_,_,var,_,_|pp var}
                 match(:print, "(", :expression, ")", ";") {|_,_,exp,_,_|pp exp}
                 match(:return_statement, ";")
+                match(:conversion, ";")
                 match(:array_function, ";")
                 match(:assignment, ";")
                 match(:re_assignment, ";")
@@ -82,6 +87,13 @@ class LanguageParser
 
             rule :return_statement do
                 match(:return, :logical_expression) {|_, expr| Node_return.new(expr)}
+            end
+
+            match :conversion do
+                match(:to_char, "(", :logical_expression, ")") {|_,_,value,_| Node_to_char.new(value)}
+                match(:to_int, "(", :logical_expression, ")") {|_,_,value,_| Node_to_int.new(value)}
+                match(:to_float, "(", :logical_expression, ")") {|_,_,value,_| Node_to_float.new(value)}
+                match(:to_bool, "(", :logical_expression, ")") {|_,_,value,_| Node_to_bool.new(value)}
             end
 
             rule :array_function do

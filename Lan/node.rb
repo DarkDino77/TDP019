@@ -50,7 +50,7 @@ class Node
         if value == 0 || (value.is_a?(Array) && value.empty?())
             return false
         end
-        return value
+        return value 
     end
 end
 

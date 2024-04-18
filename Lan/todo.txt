@@ -6,8 +6,9 @@
 [ ] Slipa på koden + skriva tester 
         get_type till node?
 
-assert_equal([[[1,2]]], execute("mod auto a = [[[1]]]; a[0][0].add(2); a;")) LÅNGSAMT
 
+Skicka in och fixa tester i lab i tdp015
+Implementera typhärledningar
 
 
 
