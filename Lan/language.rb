@@ -31,6 +31,7 @@ class LanguageParser
             token(/\bto_i\b/) {:to_int}
             token(/\bto_f\b/) {:to_float}
             token(/\bto_b\b/) {:to_bool}
+            token(/\bto_a\b/) {:to_array}
             token(/\breturn\b/) {:return}
             token(/\bif\b/) {:if}
             token(/\bwhile\b/) {:while}
@@ -69,10 +70,8 @@ class LanguageParser
             end
 
             rule :statement do 
-                match(:print, "(", "'", :variable,"'", ")", ";") {|_,_,_,var,_,_,_|pp var}
-                match(:print, "(", :variable_call, ")", ";") {|_,_,var,_,_|pp var}
-                match(:print, "(", :expression, ")", ";") {|_,_,exp,_,_|pp exp}
                 match(:return_statement, ";")
+                match(:print, "(", :variable_list, ")", ";") {|_,_,exp,_,_| Node_print.new(exp.flatten)}
                 match(:conversion, ";")
                 match(:array_function, ";")
                 match(:assignment, ";")
@@ -89,11 +88,12 @@ class LanguageParser
                 match(:return, :logical_expression) {|_, expr| Node_return.new(expr)}
             end
 
-            match :conversion do
+            rule :conversion do
                 match(:to_char, "(", :logical_expression, ")") {|_,_,value,_| Node_to_char.new(value)}
                 match(:to_int, "(", :logical_expression, ")") {|_,_,value,_| Node_to_int.new(value)}
                 match(:to_float, "(", :logical_expression, ")") {|_,_,value,_| Node_to_float.new(value)}
                 match(:to_bool, "(", :logical_expression, ")") {|_,_,value,_| Node_to_bool.new(value)}
+                match(:to_array, "(", :logical_expression, ")") {|_,_,value,_| Node_to_array.new(value)}
             end
 
             rule :array_function do
@@ -267,13 +267,20 @@ class LanguageParser
                 match(:array_list)
                 match(:function_call)
                 match("(", :expression, ")") {|_,m,_| m }
-                match("\"", :char ,"\"") {|_,m,_| Node_datatype.new("'" + m + "'", "char")}
-                match("\'", :char ,"\'") {|_,m,_| Node_datatype.new("'" + m + "'", "char")}
                 match(:bool) {|m| Node_datatype.new(m.name, "bool")}
                 match(:variable_call)
                 match(:float){|m| Node_datatype.new(m, "float")}
                 match(:int){|m| Node_datatype.new(m, "int")}
+                match(:text) {|m| Node_datatype.new( m, "char")}
             end
+            
+            rule :text do 
+                match("\"", :char,"\"") {|_,m,_| "'" + m + "'"}
+                match("\'", :char ,"\'") {|_,m,_| "'" + m + "'"}
+                match("\"","\"") {|_,_| "'"+ "'"}
+                match("\'","\'") {|_,_| "'"+ "'"}
+               
+            end 
 
             rule :variable_call do
                 match(:variable,:array_accessor){|name,index|
@@ -294,8 +301,8 @@ class LanguageParser
 
             rule :variable do
                 match(:variable, :digit){|m,n| m  + n  }
-                match(:char, :variable){|m,n| m + n }
-                match(:char) {|m| m }
+                match(:letter, :variable){|m,n| m + n }
+                match(:letter) {|m| m }
             end
 
             rule :array do
@@ -329,6 +336,10 @@ class LanguageParser
             end
 
             rule :char do
+                match(/(?<![\w-]).(?![\w-])/) {|m| m}
+            end
+
+            rule :letter do
                 match(/(?<![\w-])[a-zA-Z_](?![\w-])/) {|m| m}
             end
         end

@@ -1,0 +1,31 @@
+def fibonacci_recursive(int n)
+{
+    if(n <= 1)
+    {
+        return n; 
+    }
+  
+    return (fibonacci_recursive(n - 1) + fibonacci_recursive(n - 2));
+}
+
+mod int a = fibonacci_recursive(1);
+print(a);
+a = fibonacci_recursive(2);
+print(a);
+a = fibonacci_recursive(3);
+print(a);
+a = fibonacci_recursive(4);
+print(a);
+a = fibonacci_recursive(5);
+print(a);
+a = fibonacci_recursive(6);
+print(a);
+a = fibonacci_recursive(7);
+print(a);
+a = fibonacci_recursive(8);
+print(a);
+a = fibonacci_recursive(9);
+print(a);
+a = fibonacci_recursive(10);
+print(a);
+

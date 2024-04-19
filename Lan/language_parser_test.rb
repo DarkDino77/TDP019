@@ -593,7 +593,6 @@ class LanguageTest < Test::Unit::TestCase
 		assert_equal(true, execute("[true] > [];"))
 
 		assert_equal(['a'], execute("['a'];"))
-		#assert_equal(true, execute("['a'] < ['b'];"))
 		assert_equal(true, execute("[] < [1];"))
 
 		assert_equal([10], execute("mod auto a = []; a.add(10); a;"))
@@ -610,7 +609,75 @@ class LanguageTest < Test::Unit::TestCase
 		assert_equal([1,2], execute("mod auto a = [[1]]; a[0].add(2); a[0];"))
 		assert_equal([[1,2]], execute("mod auto a = [[1]]; a[0].add(2);"))
 		assert_equal(2, execute("mod auto a = [[1,2]]; a[0][1];"))
-		# assert_equal([[[1,2]]], execute("mod auto a = [[[1]]]; a[0][0].add(2); a;"))
-		# assert_equal(2, execute("mod auto a = [[[1]]]; a[0][0].add(2); a[0][0].remove(1);"))
+		# assert_equal([[[1,2]]], execute("mod auto a = [[[1]]]; a[0][0].add(2); a;")) # tar lång tid
+		# assert_equal(2, execute("mod auto a = [[[1]]]; a[0][0].add(2); a[0][0].remove(1);")) # tar lång tid
+	end
+
+	def test_char_conversions
+		assert_equal('t', execute("to_c(true);"))
+		assert_equal('f', execute("to_c(false);"))
+		assert_equal('5', execute("to_c(500);"))
+		assert_equal('-', execute("to_c(-1);"))
+		assert_equal('-', execute("to_c(-0.1);"))
+		assert_equal('5', execute("to_c(505.5);"))
+		assert_equal('0', execute("to_c(0);"))
+		assert_equal('0', execute("to_c(0.0);"))
+		assert_equal('1', execute("int[] arr_a = [1];to_c(arr_a[0]);"))
+	end
+
+	def test_boolean_conversions
+		assert_equal(true, execute("to_b(true);"))
+		assert_equal(false, execute("to_b(false);"))
+		assert_equal(true, execute("to_b(505.5);"))
+		assert_equal(true, execute("to_b(-0.1);"))
+		assert_equal(true, execute("to_b(500);"))
+		assert_equal(true, execute("to_b(-1);"))
+		assert_equal(false, execute("to_b(0);"))
+		assert_equal(false, execute("to_b(0.0);"))
+		assert_equal(true, execute("to_b('a');"))
+		assert_equal(true, execute("to_b('b');"))
+		assert_equal(true, execute("to_b(\"a\");"))
+		assert_equal(true, execute("to_b(\"b\");"))
+		assert_equal(false, execute("to_b('');"))
+		assert_equal(false, execute("to_b(\"\");"))
+		assert_equal(true, execute("int[] arr_a = [1];to_b(arr_a[0]);"))
+	end
+
+	def test_integer_conversions
+		assert_equal(1, execute("to_i(true);"))
+		assert_equal(0, execute("to_i(false);"))
+		assert_equal(505, execute("to_i(505.5);"))
+		assert_equal(500, execute("to_i(500);"))
+		assert_equal(5, execute("to_i('5');"))
+		assert_raise(TypeError) { execute("to_i('a');")}
+		assert_raise(TypeError) { execute("to_i('?');")}
+		assert_raise(TypeError) { execute("to_i('');")}
+		assert_raise(Parser::ParseError) { execute("to_i('50');")}
+		assert_equal(1, execute("int[] arr_a = [1];to_i(arr_a[0]);"))
+		assert_equal(1, execute("float[] arr_a = [1.5];to_i(arr_a[0]);"))
+	end
+
+	def test_float_conversions
+		assert_equal(505.5, execute("to_f(505.5);"))
+		assert_equal(500.0, execute("to_f(500);"))
+		assert_equal(0.0, execute("to_f(false);"))
+		assert_equal(1.0, execute("to_f(true);"))
+		assert_equal(-1.0, execute("to_f(-1);"))
+		assert_equal(5.0, execute("to_f('5');"))
+		assert_raise(TypeError) { execute("to_f('a');")}
+		assert_raise(TypeError) { execute("to_f('?');")}
+		assert_raise(TypeError) { execute("to_f('');")}
+		assert_raise(Parser::ParseError) { execute("to_f('50');")}
+		assert_equal(1.0, execute("int[] arr_a = [1];to_f(arr_a[0]);"))
+		assert_equal(1.0, execute("int[] arr_a = [[1]];to_f(arr_a[0][0]);"))
+		assert_raise(TypeError) { execute("int[] arr_a = [[1]];to_f(arr_a[0]);")}
+	end
+
+	def test_array_conversions
+		assert_equal([505.5], execute("to_a(505.5);"))
+		assert_equal([505], execute("to_a(505);"))
+		assert_equal(['a'], execute("to_a('a');"))
+		assert_equal([true], execute("to_a(true);"))
+		assert_equal([[1]], execute("to_a([1]);"))
 	end
 end

@@ -8,12 +8,14 @@ def bool checkLimit(int a)
       
     if(a >= 5)
     { 
+        print(a);
         return false; 
     } 
 }
 
 while(checkLimit(i)) 
 { 
+    print('h', 'e', 'j', '_',i);
     i = i + 1; 
 }
 

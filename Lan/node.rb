@@ -47,7 +47,7 @@ class Node
     end
     
     def true_or_false(value)
-        if value == 0 || (value.is_a?(Array) && value.empty?())
+        if value == 0 || (value.is_a?(Array) && value.empty?()) || value == ""
             return false
         end
         return value 
@@ -270,6 +270,14 @@ class Node_array_accessor < Node
     def initialize(name, index)
         @name = name
         @index = index
+        @type = "nil"
+    end
+
+    def get_type()
+        if @type == "nil"
+            evaluate
+        end
+        return @type
     end
 
     def evaluate()
@@ -283,10 +291,11 @@ class Node_array_accessor < Node
         unless index <= target_array["value"].size-1 && index >= 0
             raise IndexError, "outofrange"
         end
-        #check_errors(target_array, @index[0])
 
         return_value = target_array["value"][index]
-        
+        @type = (return_value.is_a?(Array) ? target_array["type"] : target_array["type"].split("_")[1])
+
+
         for i in 1..@index.size-1 do
             index = @index[i].evaluate
             unless return_value.is_a?(Array)
@@ -298,23 +307,9 @@ class Node_array_accessor < Node
             end
 
             return_value = return_value[index]
+            @type = (return_value.is_a?(Array) ? target_array["type"] : target_array["type"].split("_")[1])
+            
         end
-        # if @index.size == 2
-        #     # pp " tryig: #{target_array["value"][index]} [#{@index[1].evaluate}]"
-        #     return target_array["value"][index][@index[1].evaluate]
-        # end
-
-        # unless target_array["type"].include?("array")
-        #     raise TypeError, "Variable with the name #{@name} is not a Array"
-        # end
-
-        # unless index <= target_array["value"].size-1 && index >= 0
-        #     if @index.size == 1
-        #         raise IndexError, "outofrange"
-        #     end
-        # end
-
-        # return_value = target_array["value"][index]
 
         return return_value
     end
@@ -750,5 +745,101 @@ class Node_negative < Node
 
     def evaluate()
         return -@value.evaluate
+    end
+end
+
+# ---------------------------------------[Conversions]---------------------------------------
+
+class Node_to_char < Node
+  def initialize(value)
+    @value = value
+  end
+
+  def evaluate()
+    return_value = @value.evaluate
+    return_value = return_value.to_s[0]
+    return return_value
+  end
+end
+
+class Node_to_int < Node
+    def initialize(value)
+      @value = value
+    end
+    
+    def evaluate()
+        case @value.get_type
+        in "float"
+            return @value.evaluate.floor
+        in "bool"
+            return @value.evaluate ? 1 : 0
+        in "char"
+            return (@value.evaluate =~ /\d/) ? @value.evaluate.to_i : raise(TypeError, "Type conversion is not supported for this type")
+        in "int"
+            return @value.evaluate    
+        else
+            raise TypeError, "Type conversion is not supported for this type"
+        end
+    end
+end
+
+class Node_to_float < Node
+    def initialize(value)
+        @value = value
+    end
+
+    def evaluate()
+        case @value.get_type
+        in "float"
+            return @value.evaluate
+        in "bool"
+            return @value.evaluate ? 1.0 : 0.0
+        in "char"
+            return (@value.evaluate =~ /\d/) ? @value.evaluate.to_f : raise(TypeError, "Type conversion is not supported for this type")
+        in "int"
+            return @value.evaluate.to_f   
+        else
+            raise TypeError, "Type conversion is not supported for this type"
+        end
+    end
+end
+  
+class Node_to_bool < Node
+    def initialize(value)
+      @value = value
+    end
+    
+    def evaluate()
+        if true_or_false(@value.evaluate)
+            return true
+        end
+
+        return false
+    end
+end
+
+class Node_to_array < Node
+    def initialize(value)
+      @value = value
+    end
+    
+    def evaluate()
+        return Node_array.new("nil", [@value]).evaluate
+    end
+end
+
+# ---------------------------------------[Print]---------------------------------------
+
+class Node_print < Node
+    def initialize(exp)
+        @exp = exp
+    end
+
+    def evaluate()
+        @exp.each do |e|
+            print e.evaluate
+        end
+        print("\n")
+        return nil
     end
 end

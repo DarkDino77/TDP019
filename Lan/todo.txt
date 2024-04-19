@@ -1,7 +1,5 @@
 [ ] Print
-[ ] int_token ska returnera "int"
 
-[ ] Fixa strings om vi orkar
 [ ] Uppdatera BNF
 [ ] Slipa på koden + skriva tester 
         get_type till node?
@@ -9,6 +7,13 @@
 
 Skicka in och fixa tester i lab i tdp015
 Implementera typhärledningar
+
+
+
+
+
+
+
 
 
 
