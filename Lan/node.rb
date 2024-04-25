@@ -62,6 +62,7 @@ class Node_statement_list < Node
 
     def evaluate()
         return_value = @statement.evaluate()
+        
         if @statement.is_a?(Node_return)
             return @statement
         elsif return_value.is_a?(Node_return)

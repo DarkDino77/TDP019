@@ -680,4 +680,21 @@ class LanguageTest < Test::Unit::TestCase
 		assert_equal([true], execute("to_a(true);"))
 		assert_equal([[1]], execute("to_a([1]);"))
 	end
+
+	def test_fib
+		assert_equal(nil, execute("def fibonacci_recursive(int n)
+		{
+			if(n <= 1)
+			{
+				return n; 
+			}
+		  
+			return (fibonacci_recursive(n - 1) + fibonacci_recursive(n - 2));
+		}
+		
+		mod int a = fibonacci_recursive(15);
+		print(a);
+		
+		"))
+	end
 end

@@ -2,7 +2,7 @@
 require './rdparse.rb'
 require './node.rb'
 
-$debug = false
+$debug = true
 class LanguageParser  
 
     attr_accessor :language_parser
