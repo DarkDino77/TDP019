@@ -697,7 +697,8 @@ class LanguageTest < Test::Unit::TestCase
 	end
 
 	def test_fib
-		assert_equal(nil, execute("def fibonacci_recursive(int n)
+		assert_equal(8, execute("
+		def fibonacci_recursive(int n)
 		{
 			if(n <= 1)
 			{
@@ -707,9 +708,29 @@ class LanguageTest < Test::Unit::TestCase
 			return (fibonacci_recursive(n - 1) + fibonacci_recursive(n - 2));
 		}
 		
-		mod int a = fibonacci_recursive(15);
-		print(a);
+		mod int a = fibonacci_recursive(6);
 		
+		"))
+	end
+
+	def test_fib2
+		assert_equal(280571172992510140037611932413038677189525, execute("
+		def fibonacci_recursive(int n)
+		{
+			if(n == 0)
+			{
+				return 0; 
+			}
+			if(n == 1)
+			{
+				return 1;
+			}
+		  
+			return (fibonacci_recursive(n - 1) + fibonacci_recursive(n - 2));
+		}
+		
+		mod int a = fibonacci_recursive(200);
+		a;
 		"))
 	end
 end

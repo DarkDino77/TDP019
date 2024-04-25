@@ -2,7 +2,7 @@
 require './rdparse.rb'
 require './node.rb'
 
-$debug = true
+$debug = false
 class LanguageParser  
 
     attr_accessor :language_parser
@@ -37,9 +37,16 @@ class LanguageParser
             token(/\bwhile\b/) {:while}
             token(/\bdef\b/) {:def}
 
+
+            
             token(/(?<![\w-])\d(?![\w-])/) {|m| m } # behövs?
             token(/(?<![\w-])[a-zA-Z_](?![\w-])/) {|m| m } # behövs?
-            token(/\A(==|<=|>=|!=|\*\*)/) {|m|  m}
+            token(/\A(==|<=|>=|!=|\*\*|=|\+|\-|%)/) {|m|  m}
+
+            # Improved token matching for identifiers and operators
+             #token(/(\b[a-zA-Z_][a-zA-Z0-9_]*\b)/) {|m| m }  # Handle identifiers more explicitly
+            # token(/(\A==|\A<=|\A>=|\A!=|\A\*\*|\A\+|\A-|\A\*|\A\/|\A%)/) {|m| m}  # Handle operators explicitly
+
             token(/\A!/) {:not}
 
             token(/./) {|m| m}

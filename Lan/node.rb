@@ -5,6 +5,7 @@ class Node
     @@variable_stack = [{}]
     @@function_stack = [{}]
     @@current_scope = 0
+    
     def evaluate()
         raise NotImplementedError, "Must implement #{self.class}.evaluate"
     end
@@ -22,6 +23,7 @@ class Node
     end
 
     def look_up_var(name)
+        # pp("Look_up var")
         stack_counter = @@variable_stack.size-1    
         @@variable_stack.reverse_each do |variables|
             if variables.has_key?(name)
@@ -35,6 +37,7 @@ class Node
     end
 
     def look_up_fun(name)
+        # pp("Look_up fun")
         stack_counter = @@function_stack.size-1    
         @@function_stack.reverse_each do |variables|
             if variables.has_key?(name)
@@ -110,10 +113,14 @@ class Node_variable < Node
     attr_accessor :name
     def initialize(name)
         @name = name
+        @type = nil
     end
 
     def get_type()
-        return look_up_var(@name)["type"]
+        if @type == nil
+            @type = look_up_var(@name)["type"]
+        end
+        return @type
     end
     
     def evaluate()
@@ -174,6 +181,7 @@ class Node_re_assignment < Node
     def evaluate()
         stack_counter = @@variable_stack.size-1
         var = look_up_var(@name)
+
 
         if var
             if var["type"] != @value.get_type
@@ -460,56 +468,58 @@ class Node_function < Node
 end
 
 class Node_function_call < Node
-    attr_accessor :type
+    attr_accessor :type, :cache
+
     def initialize(name, variable_list)
         @name = name
         @variable_list = variable_list
         @type = "nil"
+        #For recusive speedups
+        @cache = {}
     end
 
     def get_type()
-        @type = look_up_fun(@name).type unless look_up_fun(@name).type == "nil"
         if @type == "nil" 
             evaluate()
         end
         return @type
     end
 
-    def evaluate()
-        fun = look_up_fun(@name)
+    def evaluate
+        evaluated_arguments = @variable_list.map(&:evaluate)
 
-        unless fun != nil
-            raise "The function with the name #{@name} does not exist"
-        end
+        arguments_key = evaluated_arguments.join("-")
+        cache_key = "#{@name}-#{arguments_key}"
         
-        if @variable_list.size != fun.variable_list.size
+        return @cache[cache_key] if @cache.has_key?(cache_key)
+
+        fun = look_up_fun(@name)
+        raise "The function with the name #{@name} does not exist" unless fun
+
+        unless @variable_list.size == fun.variable_list.size
             raise "Wrong number of arguments, #{fun.name} expected #{fun.variable_list.size} arguments"
         end
-        
-        counter = 0
-        @variable_list.each do |var|
-            if var.get_type != fun.variable_list[counter].get_type
-                raise "#{fun.name} expected a #{fun.variable_list[counter].get_type} at index #{counter}"
+
+        @variable_list.each_with_index do |var, index|
+            expected_type = fun.variable_list[index].get_type
+            unless var.get_type == expected_type
+                raise "#{fun.name} expected a #{expected_type} at index #{index}"
             end
-            fun.variable_list[counter].value = var
-            counter = counter + 1
+            fun.variable_list[index].value = var
         end
 
         new_scope()
-        
-        fun.variable_list.each do |var|
-            var.evaluate()
-        end
-        
+
+        fun.variable_list.map(&:evaluate)
+
         if @type == "void"
-            return nil
+            close_scope
+            return nil 
         end
 
         return_value = fun.function_body.evaluate
 
-        if fun.function_body.is_a?(Node_return)
-            set_type(fun.function_body)
-        elsif return_value.is_a?(Node_return)
+        if return_value.is_a?(Node_return)
             set_type(return_value)
             return_value = return_value.evaluate
         else 
@@ -518,12 +528,12 @@ class Node_function_call < Node
 
         close_scope()
 
+        @cache[cache_key] = return_value
         return return_value
     end
 
-    def set_type(value)
-
-        @type = value.get_type
+    def set_type(return_node)
+        @type = return_node.get_type unless @type != "nil"
     end
 end
 
@@ -550,12 +560,15 @@ class Node_expression < Node
     end
 
     def get_type()
-        if @lhs.get_type=="float" && @rhs.get_type == "int"
+        lhs_type = @lhs.get_type
+        rhs_type = @rhs.get_type
+
+        if lhs_type == "float" && rhs_type == "int"
             @type = "float"
-        elsif @rhs.get_type=="float" && @lhs.get_type == "int"
+        elsif rhs_type == "float" && lhs_type == "int"
             @type = "float"
-        elsif @lhs.get_type() == @rhs.get_type()
-            @type = @lhs.get_type()
+        elsif lhs_type == rhs_type
+            @type = lhs_type
         else
             raise TypeError, "#{@lhs} is not the same type as #{@rhs} in #{self}"
         end
