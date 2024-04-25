@@ -432,7 +432,12 @@ class Node_while < Node
         new_scope()
         while true_or_false(@expression.evaluate) do
             evaluated_expression = @statement_list.evaluate
+            if evaluated_expression.is_a?(Node_return)
+                close_scope()
+                return evaluated_expression
+            end
         end
+
         close_scope()
         nil
     end

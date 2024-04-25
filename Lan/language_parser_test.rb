@@ -285,6 +285,21 @@ class LanguageTest < Test::Unit::TestCase
 		count_up();
 		"))
 
+		assert_equal(4, execute("
+		mod int counter = 1;
+		def count_up(){
+			while(counter < 5){
+				counter = counter + 1;
+				if(counter == 4)
+				{
+					return counter;
+				}	
+			}
+			return counter;
+		}
+		count_up();
+		"))
+		
 		assert_equal(120, execute("
 		  def factorial(mod int n){
 			if(n <= 1){ return 1; }
