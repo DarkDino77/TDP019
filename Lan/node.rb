@@ -226,7 +226,6 @@ class Node_array < Node
             end
             if m.get_type != @type  
                 if m.get_type() != @type.split("_")[1]
-                   # pp @type
                     raise TypeError, "Array expected #{@type.split("_")[1]} but got a #{m.get_type()}"
                 end
             end
@@ -237,40 +236,6 @@ class Node_array < Node
 
     def update_type(type)
         @type = type
-    end
-end
-
-class Node_array_accessor < Node
-    attr_accessor :name, :index
-    def initialize(name, index)
-        @name = name
-        @index = index
-    end
-
-    def evaluate()
-        target_array = look_up_var(@name)
-        return_value = "nil"
-
-        index = @index[0].evaluate # [0] -> [-1]
-
-
-        if @index.size == 2
-            #pp " tryig: #{target_array["value"][index]} [#{@index[1].evaluate}]"
-            # pp "First: #{target_array["value"][index]}, second: #{@index[1].evaluate}"
-            index = target_array["value"][index][@index[1].evaluate]
-        end
-
-        unless target_array["type"].include?("array")
-            raise TypeError, "Variable with the name #{@name} is not a Array"
-        end
-
-        unless index <= target_array["value"].size-1 && index >= 0 
-            raise IndexError, "outofrange"
-        end
-
-        return_value = target_array["value"][index]
-
-        return return_value
     end
 end
 
@@ -322,9 +287,6 @@ class Node_array_accessor < Node
 
         return return_value
     end
-
-
-
 end
 
 
@@ -363,7 +325,6 @@ class Node_array_add < Node
         target_array["value"]
     end
 end
-
 
 
 class Node_array_remove < Node
