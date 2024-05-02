@@ -23,7 +23,6 @@ class Node
     end
 
     def look_up_var(name)
-        # pp("Look_up var")
         stack_counter = @@variable_stack.size-1    
         @@variable_stack.reverse_each do |variables|
             if variables.has_key?(name)
@@ -37,7 +36,6 @@ class Node
     end
 
     def look_up_fun(name)
-        # pp("Look_up fun")
         stack_counter = @@function_stack.size-1    
         @@function_stack.reverse_each do |variables|
             if variables.has_key?(name)
@@ -50,10 +48,23 @@ class Node
     end
     
     def true_or_false(value)
-        if value == 0 || (value.is_a?(Array) && value.empty?()) || value == ""
+        if value == 0 || (value.is_a?(Array) && value.empty?()) || value == "" || value == 0.0 || value == false
             return false
         end
-        return value 
+        return true 
+    end
+
+    def create_datatype_node(value, type)
+        case type
+        when "int"
+            return Node_int.new(value)
+        when "float"
+            return Node_float.new(value)
+        when "bool"
+            return Node_bool.new(value)
+        when "char"
+            return Node_char.new(value)
+        end
     end
 end
 
@@ -94,10 +105,8 @@ end
 
 # ---------------------------------------[Variables]---------------------------------------
 class Node_datatype < Node
-    attr_accessor :value, :type
-    def initialize(value, type)
-        @value = eval(value)
-        @type = type
+    def initialize()
+        raise NotImplementedError, "Must implement #{self.class}.initialize"
     end
 
     def get_type()
@@ -106,6 +115,50 @@ class Node_datatype < Node
 
     def evaluate()
         return @value
+    end
+end
+
+class Node_int < Node_datatype
+    attr_accessor :value, :type
+    def initialize(value)
+        @value = value.to_i
+        @type = "int"
+    end
+end
+
+class Node_float < Node_datatype
+    attr_accessor :value, :type
+    def initialize(value)
+        @value = value.to_f
+        @type = "float"
+    end
+end
+
+class Node_char < Node_datatype
+    attr_accessor :value, :type
+    def initialize(value)
+        @value = value
+        @type = "char"
+    end
+end
+
+class Node_bool < Node_datatype
+    attr_accessor :value, :type
+  
+    def initialize(value)
+        @value = convert_to_boolean(value)
+        @type = "bool"
+    end
+  
+    def convert_to_boolean(value)
+        case value.downcase
+        when "true"
+            true
+        when "false"
+            false
+        else
+            raise ArgumentError, "Invalid value for boolean: '#{value}'"
+        end
     end
 end
 
@@ -542,7 +595,7 @@ class Node_expression < Node
             if sub_element.is_a? (Array)
                 element_arr_list << Node_array.new(type, array_construction(sub_element, type))
             else
-                element_arr_list << Node_datatype.new(sub_element.to_s,type.split("_")[1])     
+                element_arr_list << create_datatype_node(sub_element.to_s,type.split("_")[1])  
             end             
         end
         return element_arr_list
@@ -554,7 +607,7 @@ class Node_expression < Node
         
         lhs_type = @lhs.get_type
         rhs_type = @rhs.get_type
-        # pp lhs, rhs,lhs_type, rhs_type
+
         if lhs_type.include?("array") and rhs_type.include?("array")
             if lhs.size != rhs.size
                 raise "Arithmetic operations between arrays with different sizes are not supported"
@@ -565,32 +618,19 @@ class Node_expression < Node
             for i in 1..lhs.size do
                 if lhs[i-1].is_a?(Array) and rhs[i-1].is_a?(Array)
 
-                    # Room for improvement
-                    # pp "lhs: #{lhs[i-1]}, rhs: #{rhs[i-1]}"
-
                     lhs_arr_list = array_construction(lhs[i-1],lhs_type)
                     rhs_arr_list = array_construction(rhs[i-1],rhs_type)
 
-                    # pp lhs_arr_list
                     lhs_array = Node_array.new(lhs_type, lhs_arr_list)
                     rhs_array = Node_array.new(rhs_type, rhs_arr_list)
 
-
                     output_array << (Node_expression.new(lhs_array, @operator, rhs_array).evaluate)
                 else
-                    output_array << (Node_expression.new(Node_datatype.new(lhs[i-1].to_s, lhs_type.split("_")[1]), @operator, Node_datatype.new(rhs[i-1].to_s, rhs_type.split("_")[1])).evaluate)
+                    output_array << (Node_expression.new(create_datatype_node(lhs[i-1].to_s, lhs_type.split("_")[1]), @operator, create_datatype_node(rhs[i-1].to_s, rhs_type.split("_")[1])).evaluate)
                 end
             end
 
             return output_array
-        end
-
-        if !lhs.is_a?(String)
-            lhs = lhs.to_s
-        end
-        
-        if !rhs.is_a?(String)
-            rhs = rhs.to_s
         end
         
         if get_type === "char"
@@ -599,21 +639,25 @@ class Node_expression < Node
 
         if lhs_type=="float" && rhs_type == "int"
             @rhs.type = "float"
-            return eval(lhs + @operator + rhs + ".0")
+            return lhs.send(@operator,rhs.to_f)
 
         elsif rhs_type == "float" && lhs_type == "int"
             @lhs.type = "float"
-            return eval(lhs + ".0" + @operator + rhs)
+            return lhs.to_f.send(@operator,rhs)
 
-        # elsif get_type === "bool"
-        #     return eval(true_or_false(lhs) + @operator + true_or_false(rhs))            
-            
+        elsif lhs_type == "bool" && rhs_type != "bool" # if(false == '')
+            return lhs.send(@operator,true_or_false(rhs)) # if('' == false)
+
+        elsif rhs_type == "bool" && lhs_type != "bool"
+            return true_or_false(lhs).send(@operator,rhs)
+
         elsif lhs_type == rhs_type
             if lhs_type === "char"
-                return eval("'" + lhs + "'" + @operator + "'" + rhs + "'")
+                return lhs.send(@operator,rhs)
+
             end
-        
-            return eval(lhs + @operator + rhs)
+
+            return lhs.send(@operator,rhs)
         else
             raise TypeError, "#{@lhs} is not the same type as #{@rhs} in #{self}"
         end
@@ -644,7 +688,7 @@ class Node_logical_expression < Node_expression
             lhs = lhs.empty? ?  false : true
             rhs = rhs.empty? ?  false : true
                 
-            return Node_expression.new(Node_datatype.new(lhs.to_s, "bool"), @operator, Node_datatype.new(rhs.to_s, "bool")).evaluate
+            return Node_expression.new(Node_bool.new(lhs.to_s), @operator, Node_bool.new(rhs.to_s)).evaluate
         end
 
         super()
@@ -685,17 +729,12 @@ class Node_comparison_expression < Node_expression
     
                         return (Node_comparison_expression.new(lhs_array, @operator, rhs_array).evaluate)
                     else
-                        if lhs_type.include?("char")
-                            return Node_expression.new(Node_datatype.new(("'"+lhs[i-1]+"'"), lhs_type.split("_")[1]), @operator, Node_datatype.new(("'"+rhs[i-1]+"'"), rhs_type.split("_")[1])).evaluate
-                        end
-                        return Node_expression.new(Node_datatype.new(lhs[i-1].to_s, lhs_type.split("_")[1]), @operator, Node_datatype.new(rhs[i-1].to_s, rhs_type.split("_")[1])).evaluate
+                        return Node_expression.new(create_datatype_node(lhs[i-1].to_s, lhs_type.split("_")[1]), @operator, create_datatype_node(rhs[i-1].to_s, rhs_type.split("_")[1])).evaluate
                     end
                 end
             end
-            return Node_expression.new(Node_datatype.new(lhs.size.to_s, "int"), @operator, Node_datatype.new(rhs.size.to_s, "int")).evaluate
+            return Node_expression.new(create_datatype_node(lhs.size.to_s, "int"), @operator, create_datatype_node(rhs.size.to_s, "int")).evaluate
         end
-
-        
 
         super()
     end
@@ -735,6 +774,10 @@ class Node_to_char < Node
     @value = value
   end
 
+  def get_type()
+    return "char"
+  end
+
   def evaluate()
     return_value = @value.evaluate
     return_value = return_value.to_s[0]
@@ -747,6 +790,10 @@ class Node_to_int < Node
       @value = value
     end
     
+    def get_type()
+        return "int"
+    end
+
     def evaluate()
         case @value.get_type
         in "float"
@@ -768,6 +815,10 @@ class Node_to_float < Node
         @value = value
     end
 
+    def get_type()
+        return "float"
+    end
+    
     def evaluate()
         case @value.get_type
         in "float"
@@ -789,6 +840,10 @@ class Node_to_bool < Node
       @value = value
     end
     
+    def get_type()
+        return "bool"
+    end
+
     def evaluate()
         if true_or_false(@value.evaluate)
             return true
@@ -801,10 +856,20 @@ end
 class Node_to_array < Node
     def initialize(value)
       @value = value
+      @type = "nil"
+    end
+    
+    def get_type
+        if @type == "nil"
+            evaluate()
+        end
+        return @type
     end
     
     def evaluate()
-        return Node_array.new("nil", [@value]).evaluate
+        @value = Node_array.new("nil", [@value])
+        @type = @value.get_type 
+        return @value.evaluate
     end
 end
 

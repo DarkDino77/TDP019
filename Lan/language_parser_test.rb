@@ -435,6 +435,31 @@ class LanguageTest < Test::Unit::TestCase
 		mod int a = 20;
 		if(a >= 20){a;}
 		"))
+
+		assert_equal(0, execute("
+		mod int a = 0;
+		if(0 == false){a;}
+		"))
+
+		assert_equal(0, execute("
+		mod int a = 0;
+		if([] == false){a;}
+		"))
+
+		assert_equal(0, execute("
+		mod int a = 0;
+		if(0.0 == false){a;}
+		"))
+
+		assert_equal(0, execute("
+		mod int a = 0;
+		if('' == false){a;}
+		"))
+
+		assert_equal(0, execute("
+		mod int a = 0;
+		if(5 == true){a;}
+		"))
 	end
 	  
 	def test_loop_with_function
@@ -478,6 +503,7 @@ class LanguageTest < Test::Unit::TestCase
 		assert_equal(['a'], execute("char[] arr_a = ['a'];"))
 		assert_equal(['a', 'b', 'c'], execute("char[] arr_a = ['a', 'b', 'c'];"))
 		assert_equal([1, 5], execute("int[] arr_a = [1,2+3];"))
+		assert_equal([1, 2], execute("[1,2];"))
 
 		
 		assert_equal([1, 10], execute("mod int a = 10; int[] arr_a = [1,a];"))
@@ -732,5 +758,10 @@ class LanguageTest < Test::Unit::TestCase
 		mod int a = fibonacci_recursive(200);
 		a;
 		"))
+	end
+
+	def test_boolean_conversions_expressions
+		assert_equal(3, execute("if(to_b(505.5)){1+2;}"))
+
 	end
 end

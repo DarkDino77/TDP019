@@ -36,16 +36,10 @@ class LanguageParser
             token(/\bif\b/) {:if}
             token(/\bwhile\b/) {:while}
             token(/\bdef\b/) {:def}
-
-
             
-            token(/(?<![\w-])\d(?![\w-])/) {|m| m } # behövs?
-            token(/(?<![\w-])[a-zA-Z_](?![\w-])/) {|m| m } # behövs?
+            token(/(?<![\w-])\d(?![\w-])/) {|m| m } 
+            token(/(?<![\w-])[a-zA-Z_](?![\w-])/) {|m| m }
             token(/\A(==|<=|>=|!=|\*\*|=|\+|\-|%)/) {|m|  m}
-
-            # Improved token matching for identifiers and operators
-             #token(/(\b[a-zA-Z_][a-zA-Z0-9_]*\b)/) {|m| m }  # Handle identifiers more explicitly
-            # token(/(\A==|\A<=|\A>=|\A!=|\A\*\*|\A\+|\A-|\A\*|\A\/|\A%)/) {|m| m}  # Handle operators explicitly
 
             token(/\A!/) {:not}
 
@@ -136,22 +130,22 @@ class LanguageParser
                 }
 
                 match(:int_token, :variable){|_,name|
-                    value = Node_datatype.new("0","int")
+                    value = Node_int.new("0")
                     Node_assignment.new("int", name, value)
                 }
 
                 match(:float_token, :variable){|_,name|
-                    value = Node_datatype.new("0.0","float")
+                    value = Node_float.new("0.0")
                     Node_assignment.new("float" , name, value)
                 }
 
                 match(:bool_token, :variable){|_,name|
-                    value = Node_datatype.new("true","bool")
+                    value = Node_bool.new("true")
                     Node_assignment.new("bool", name, value)
                 }
 
                 match(:char_token, :variable){|_,name|
-                    value = Node_datatype.new("'a'","char")
+                    value = Node_char.new("a")
                     Node_assignment.new("char", name, value)
                 }
             end
@@ -219,12 +213,12 @@ class LanguageParser
             end
 
             rule :logical_expression do 
-                match(:logical_term, :or, :logical_expression)  {|a,b,c| Node_logical_expression.new(a,"||",c)}
+                match(:logical_term, :or, :logical_expression)  {|a,b,c| Node_logical_expression.new(a,"|",c)}
                 match(:logical_term)
             end
             
             rule :logical_term do 
-                match(:logical_factor, :and, :logical_term)  {|a,b,c| Node_logical_expression.new(a,"&&",c)}
+                match(:logical_factor, :and, :logical_term)  {|a,b,c| Node_logical_expression.new(a,"&",c)}
                 match(:logical_factor)
             end
 
@@ -272,21 +266,21 @@ class LanguageParser
             
             rule :atom do
                 match(:array_list)
+                match(:conversion)
                 match(:function_call)
                 match("(", :expression, ")") {|_,m,_| m }
-                match(:bool) {|m| Node_datatype.new(m.name, "bool")}
+                match(:bool) {|m| Node_bool.new(m.name)}
                 match(:variable_call)
-                match(:float){|m| Node_datatype.new(m, "float")}
-                match(:int){|m| Node_datatype.new(m, "int")}
-                match(:text) {|m| Node_datatype.new( m, "char")}
+                match(:float){|m| Node_float.new(m)}
+                match(:int){|m| Node_int.new(m)}
+                match(:text) {|m| Node_char.new( m)}
             end
             
             rule :text do 
-                match("\"", :char,"\"") {|_,m,_| "'" + m + "'"}
-                match("\'", :char ,"\'") {|_,m,_| "'" + m + "'"}
-                match("\"","\"") {|_,_| "'"+ "'"}
-                match("\'","\'") {|_,_| "'"+ "'"}
-               
+                match("\"", :char,"\"") {|_,m,_|  m }
+                match("\'", :char ,"\'") {|_,m,_|  m }
+                match("\"","\"") {|_,_| ""}
+                match("\'","\'") {|_,_| ""}
             end 
 
             rule :variable_call do
