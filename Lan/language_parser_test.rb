@@ -663,6 +663,7 @@ class LanguageTest < Test::Unit::TestCase
 		assert_equal('5', execute("to_c(505.5);"))
 		assert_equal('0', execute("to_c(0);"))
 		assert_equal('0', execute("to_c(0.0);"))
+		assert_equal('[', execute("to_c([1]);"))
 		assert_equal('1', execute("int[] arr_a = [1];to_c(arr_a[0]);"))
 	end
 
