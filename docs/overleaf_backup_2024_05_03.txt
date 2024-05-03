@@ -1,0 +1,108 @@
+\subsection{Datatyper} \label{datatyper}
+Graphite är ett statiskt typat språk i grunden, vilket innebär att när en variabel skapas måste datatypen specificeras. Graphite hanterar följande primitiva datatyper:
+\begin{itemize}
+    \item \textbf{Integer} - Motsvarar ett heltal.
+    \item \textbf{Float} - Motsvarar ett flyttal.
+    \item \textbf{Character} - Motsvarar en godtycklig UTF-8 karaktär.
+    \item \textbf{Bool} - Motsvarar ett booleanskt uttryck, d.v.s. sant eller falskt.
+    \item \textbf{Array} - En behållare som kan innehålla någon av ovanstående datatyper.
+\end{itemize}
+Ett undantag till detta är datatypen \textbf{auto} som automatiskt försöker tolka och specificera vilken datatyp variabeln kommer ha när programmet kompileras.
+
+\subsection{Variabler, namnkonvention och variabeltilldening}
+I Graphite kan du tilldela ett godtyckligt värde ett namn och lagra dessa som en variabel. Variabler gör det lättare att strukturera koden och hjälper andra att förstå sig på den. För att skapa en variabel i Graphite måste först datatypen specificeras, detta görs enligt sektion \ref{datatyper} ovan. Därefter måste ett variabelnamn fastställas. Variabelnamn bör vara meningsfulla och koncentrerade, måste börja på en liten bokstav och får därefter innehålla noll eller flera av bokstäverna a-Z, siffrorna 0-9 och symbolen "\_". I programkod ser en variabeltilldeling ut på följande vis:
+
+\begin{lstlisting}[language=ruby]
+    int var_a = 10;
+\end{lstlisting}
+
+"int"\ representerar datatypen, "var\_a"\ är variabelnmanet, "$=$"\ är operator-tecknet, "10"\ är värdet som variabeln ska tilldelas och ";"\ är tecknet som respresterar slutet på uttrycket. I graphite är variabler konstanta som basfall, detta betyder att de inte går att ändra dess värde. Variabler som ska kunna ändra sitt värde måste där med definieras som förändrings bara, detta görs genom att använda nyckelordet "mod"\ före variabel deklarationen. Detta kan observeras i koden nedan %fixa bättre
+
+\begin{lstlisting}[language=ruby]
+    mod int var_a = 10;                                                   
+\end{lstlisting}
+
+Följande är exempel på hur varje variabler för respektive primitiv datatyp kan skapas:
+
+\begin{lstlisting}[language=ruby]
+    float var_c = 7.2;
+    bool var_e = true;
+    char var_g = 'g';
+\end{lstlisting}
+
+Datatypen Array är en behållare som kan innehålla element av någon ovanstående datatyp, men endast en datatyp kan användas för den aktuella Arrayen. För en detaljerad beskrivning av denna konstruktion se sektion BLABLA. Ett exempel på en variabeltilldelning med datatypen Array visas nedan:
+
+\begin{lstlisting}[language=ruby]
+    int[] arr_a = [1,2,3];
+    mod int[] arr_b = [4,5,6];
+\end{lstlisting}
+
+Det som speciferar att en variabel är en Array är hakparenteserna som följer direkt efter datatypen.
+
+Man kan också ha Arryer av samma data typ i en Array blandat med den respektive datatypen. 
+\begin{lstlisting}[language=ruby]
+    int[] arr_a = [[1],[2,3], 4];
+\end{lstlisting}
+
+Nykelordet auto kan användas om man vill låta språket dynamiskt interpretera vilken datatyp som ska tilldelas till den relevanta variablen. 
+
+\begin{lstlisting}[language=ruby]
+    auto var_a = 10;
+    mod auto var_b = 5;
+\end{lstlisting}
+
+"auto" tillåter endast dynamisk typ härledning vid variabel deklaration. Detta betyder att en variabel kommer ha en bestämd typ efter deklaration och man kan inte ge variabeln ett värde av en annan typ. 
+
+Data typer har också bas värden som tillåter deklarationen av variabler utan tilldelning av initialt värde. Detta sker på följande vis. 
+
+\begin{lstlisting}[language=ruby]
+    int var_a;
+    float var_c;
+    bool var_e;
+    char var_g;
+    int[] var_a;
+\end{lstlisting}
+
+Värden som de respective datatyperna får kan observeras i tabell \ref{datatyp_bas_värden} nedan.
+
+\begin{table}[!h]
+   \captionsetup{font=scriptsize}
+    \caption{datatypers bas värde}
+    \label{datatyp_bas_värden}
+    \centering
+    \begin{tabular}{|c|c|} \hline 
+        \textbf{Datatyp} & \textbf{Värde} \\ \hline 
+        Integer & 1\\ \hline 
+        Float & 1.0 \\ \hline 
+        Character & "a" \\ \hline 
+        Bool & true\\ \hline 
+        Array & [] \\ \hline
+    \end{tabular}
+\end{table}
+
+\subsubsection{Variabelomtilldelning}
+
+\subsection{Kontrollstrukturer}
+Kontrollstrukturer låter programmeraren ha kontroll över flödet i ett program och i Graphite kan detta göras med följande konstruktioner.
+
+\subsubsection{If-satser}
+En if-sats utför ett kommando bara om dess villkorssats blir uppfyllt. I Graphite kan programkoden för en if-stats se ut på följande vis:
+
+\begin{lstlisting}[language=ruby]
+    if(con_a){
+        print(1+2);
+    }
+\end{lstlisting}
+Parenteserna efter "if" innehåller det logiska uttrycket som avgör om kommandot ska utföras eller inte. I detta exempel representerar variabeln "con\_a" ett booleanskt uttryck som förväntas vara sant eller falskt. Det går även att genomföra godtyckliga jämförelse-operationer som villkorssats. Mer om logiska uttryck finns under sektionen BLABLA. Mellan klammerparenteserna skrivs de uttryck som ska evalueras och utföras om villkoret blir uppfyllt. I detta exempel anropas den inbyggda funktionen "print()", vilket skriver ut parametrarna som skickas in i funktionen enligt sektion BLABLA. 
+
+\subsubsection{While-satser}
+While-satser används för att utföra ett kod-block upprepade gånger tills dess villkorssats blir uppfyllt. Följande är ett exempel på hur man skapar en While-sats i Graphite:
+
+\begin{lstlisting}[language=ruby]
+mod int counter = 1
+while(counter < 10){
+    counter = counter + 1;
+}
+\end{lstlisting}
+
+\end{document}
