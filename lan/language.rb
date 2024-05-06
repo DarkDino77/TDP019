@@ -38,6 +38,7 @@ class LanguageParser
             token(/\bdef\b/) {:def}
             
             token(/(?<![\w-])\d(?![\w-])/) {|m| m } 
+            
             token(/(?<![\w-])[a-zA-Z_](?![\w-])/) {|m| m }
             token(/\A(==|<=|>=|!=|\*\*|=|\+|\-|%)/) {|m|  m}
 
@@ -336,12 +337,12 @@ class LanguageParser
                 match(/(?<![\w-])\d(?![\w-])/) {|m| m}
             end
 
-            rule :char do
-                match(/(?<![\w-]).(?![\w-])/) {|m| m}
-            end
-
             rule :letter do
                 match(/(?<![\w-])[a-zA-Z_](?![\w-])/) {|m| m}
+            end
+
+            rule :char do
+                match(/(?<![\w-]).(?![\w-])/) {|m| m}
             end
         end
     end

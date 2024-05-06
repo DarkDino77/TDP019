@@ -1,0 +1,47 @@
+int radius = 5;
+float pi = 3.14;
+int rect_length = 10;
+int rect_width = 20;
+
+def float calculate_circle_area(int r) {
+    return pi * (r * r); 
+}
+
+def calculate_rectangle_area(int length, int width) {
+    return length * width;
+}
+
+def void main() {
+    float circle_area = calculate_circle_area(radius);
+    int rectangle_area = calculate_rectangle_area(rect_length,rect_width);
+
+    print(circle_area);
+    print(rectangle_area);
+
+    if (circle_area > rectangle_area) {
+        print("B","I","G","G","E","R");
+    } 
+    if(circle_area <= rectangle_area) {
+        print("S","M","A","L","L","E","R");
+    }
+
+    mod int counter = 0;
+    while (counter < 5) {
+        print(counter);
+        counter = counter + 1;
+    }
+
+    float initial = 5.25;
+    int int_value = to_i(initial); 
+    print(initial);
+    print(int_value);
+    
+    mod int[] number_array = [10, 20, 30];
+    number_array.add(40); 
+    print(number_array);
+    number_array.remove(0);
+    print(number_array);
+    print(number_array[0]);
+}
+
+main();

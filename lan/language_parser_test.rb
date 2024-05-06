@@ -460,6 +460,11 @@ class LanguageTest < Test::Unit::TestCase
 		mod int a = 0;
 		if(5 == true){a;}
 		"))
+
+		assert_equal(0, execute("
+		mod int a = 0;
+		if(5%2 == 1){a;}
+		"))
 	end
 	  
 	def test_loop_with_function
