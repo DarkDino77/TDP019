@@ -3,25 +3,25 @@ float pi = 3.14;
 int rect_length = 10;
 int rect_width = 20;
 
-def float calculateCircleArea(int r) {
+def float calculate_circle_area(int r) {
     return pi * (r * r); 
 }
 
-def calculateRectangleArea(int length, int width) {
+def calculate_rectangle_area(int length, int width) {
     return length * width;
 }
 
 def void main() {
-    float circleArea = calculateCircleArea(radius);
-    int rectangleArea = calculateRectangleArea(rect_length,rect_width);
+    float circle_area = calculate_circle_area(radius);
+    int rectangle_area = calculate_rectangle_area(rect_length,rect_width);
 
-    print(circleArea);
-    print(rectangleArea);
+    print(circle_area);
+    print(rectangle_area);
 
-    if (circleArea > rectangleArea) {
+    if (circle_area > rectangle_area) {
         print("B","I","G","G","E","R");
     } 
-    if(circleArea <= rectangleArea) {
+    if(circle_area <= rectangle_area) {
         print("S","M","A","L","L","E","R");
     }
 
@@ -32,15 +32,15 @@ def void main() {
     }
 
     float initial = 5.25;
-    int asciiValue = to_i(initial); 
+    int int_value = to_i(initial); 
     print(initial);
-    print(asciiValue);
+    print(int_value);
     
-    mod int[] numberArray = [10, 20, 30];
-    numberArray.add(40); 
-    print(numberArray);
-    numberArray.remove(0);
-    print(numberArray);
+    mod int[] number_array = [10, 20, 30];
+    number_array.add(40); 
+    print(number_array);
+    number_array.remove(0);
+    print(number_array);
 }
 
 main();
