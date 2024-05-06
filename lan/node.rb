@@ -163,7 +163,7 @@ class Node_bool < Node_datatype
 end
 
 class Node_variable < Node
-    attr_accessor :name
+    attr_accessor :name,:type
     def initialize(name)
         @name = name
         @type = nil
