@@ -41,6 +41,7 @@ def void main() {
     print(number_array);
     number_array.remove(0);
     print(number_array);
+    print(number_array[0]);
 }
 
 main();
