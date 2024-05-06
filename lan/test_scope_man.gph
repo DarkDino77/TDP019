@@ -1,0 +1,9 @@
+int var_a = 10;
+
+def fun_a(){
+    int var_a = 20;
+    print(var_a);
+}
+
+fun_a();
+print(var_a);

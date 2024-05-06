@@ -235,7 +235,6 @@ class Node_re_assignment < Node
         stack_counter = @@variable_stack.size-1
         var = look_up_var(@name)
 
-
         if var
             if var["type"] != @value.get_type
                 raise TypeError, "Variable assignment for '#{@name}' expected a #{@type} value, but got a #{@value.get_type} value."
@@ -249,7 +248,7 @@ class Node_re_assignment < Node
         else
             raise "Variable with name #{@name} not found in scope with variables: #{@@variable_stack[@@current_scope]}"
         end
-        nil
+        return nil
     end
 end
 
@@ -375,7 +374,7 @@ class Node_array_add < Node
             @target_variable.evaluate << m.evaluate
         end
 
-        target_array["value"]
+        return target_array["value"]
     end
 end
 
@@ -440,7 +439,8 @@ class Node_if < Node
             return return_value
         end
         close_scope()
-        nil
+
+        return nil
     end
 end
 
@@ -461,7 +461,8 @@ class Node_while < Node
         end
 
         close_scope()
-        nil
+
+        return nil
     end
 end
 
@@ -477,7 +478,8 @@ class Node_function < Node
 
     def evaluate()
         @@function_stack[@@current_scope][@name] = self
-        nil
+
+        return nil
     end
 end
 
@@ -543,6 +545,7 @@ class Node_function_call < Node
         close_scope()
 
         @cache[cache_key] = return_value
+
         return return_value
     end
 
@@ -556,10 +559,10 @@ class Node_return < Node
         @expr = expr
     end
     def get_type()
-        @expr.get_type
+        return @expr.get_type
     end
     def evaluate()
-        @expr.evaluate
+        return @expr.evaluate
     end
 end
 
@@ -598,6 +601,7 @@ class Node_expression < Node
                 element_arr_list << create_datatype_node(sub_element.to_s,type.split("_")[1])  
             end             
         end
+
         return element_arr_list
     end
 
@@ -781,6 +785,7 @@ class Node_to_char < Node
   def evaluate()
     return_value = @value.evaluate
     return_value = return_value.to_s[0]
+
     return return_value
   end
 end
@@ -863,12 +868,14 @@ class Node_to_array < Node
         if @type == "nil"
             evaluate()
         end
+
         return @type
     end
     
     def evaluate()
         @value = Node_array.new("nil", [@value])
         @type = @value.get_type 
+
         return @value.evaluate
     end
 end
@@ -885,6 +892,7 @@ class Node_print < Node
             print e.evaluate
         end
         print("\n")
+        
         return nil
     end
 end

@@ -106,3 +106,26 @@ while(counter < 10){
 \end{lstlisting}
 
 \end{document}
+
+
+
+
+
+
+
+
+
+
+
+
+\section{Inledning}
+Graphite är ett programmeringsspråk som framställts i form av ett projektarbete i kursen TDP019 Projekt: Datorspråk i andra terminen på IP-programmet.
+
+\subsection{Syfte}
+Syftet med projektarbetet var att specificera och framställa ett programmeringsspråk för att öka kunskapen i hur datorspråk fungerar.
+
+\subsection{Introduktion}
+Det programspråk vi valde att skapa är en kombination av C++ och Python. Vi gillar den strikt typade aspekten hos C++, som reducerar mängden felkällor genom att alltid behöva specificera variablers datatyper, och den enkla syntaxen som Python använder. Slutprodukten blev därför ett urval av det bästa från båda språken och heter Graphite.
+
+\subsection{Målgrupp}
+Graphite riktar sig åt användare med en viss tidigare erfarenhet av programmering och som föredrar mer strikta programspråk.
