@@ -8,7 +8,7 @@ def fibonacci_recursive(int n)
     return (fibonacci_recursive(n - 1) + fibonacci_recursive(n - 2));
 }
 
-mod int a = fibonacci_recursive(15);
+int a = fibonacci_recursive(1816);
 print(a);
 
 
