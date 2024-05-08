@@ -1,0 +1,26 @@
+
+int main()
+{
+    int x = 5;
+    print x;
+    if(foo(1) == 15)
+    {
+        print 9001;
+    }
+    print 10000;
+
+    return x - 3;
+}
+
+
+int foo(int y)
+do
+    if(y < 5)
+    {
+        return foo(y + 1) + y;
+    end
+    else
+    {
+        return (((((y)))));
+    }
+}
