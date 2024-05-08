@@ -152,6 +152,7 @@ class BLFunctionManager
         # Find a function with a matching signature
         @funcs[signature.name].each do |func|
             if(func.signature.eql?(signature))
+                #pp func
                 return func
             end
         end

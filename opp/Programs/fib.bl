@@ -1,0 +1,17 @@
+int fibonacci_recursive(int n)
+do
+    print n;
+    if(n <= 1)
+    {
+        return n; 
+    }
+  
+    return (fibonacci_recursive(n - 1) + fibonacci_recursive(n - 2));
+}
+
+int main()
+begin
+    int a = fibonacci_recursive(8);
+    print a;
+    return 0;
+end

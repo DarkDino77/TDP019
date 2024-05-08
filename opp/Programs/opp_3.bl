@@ -1,0 +1,25 @@
+int fibonacci_recursive(int n)
+{
+    if(n == 10)
+    {
+        return 0; 
+    }
+    if(n == 11)
+    {
+        return 3; 
+    }
+    return 1;
+end
+
+int factorial(int n){
+
+	return fibonacci_recursive(1) + fibonacci_recursive(10) + fibonacci_recursive(11); 
+}
+		  
+
+int main()
+begin
+    int b = factorial(5);
+    print b;
+    return 0;
+end

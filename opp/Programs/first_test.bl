@@ -1,8 +1,9 @@
 
 int main()
 {
-    int x = 5;
+    int x = int y =  5;
     print x;
+    print y;
     if(foo(1) == 15)
     {
         print 9001;

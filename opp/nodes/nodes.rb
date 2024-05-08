@@ -97,7 +97,7 @@ class BLFuncCall
         arguments.each do |arg|
             arg_types.append(scope.type(arg))
         end
-        # Make a signature using the name of the function and the types of each argument
+        # Make a signature using the name of the function and the types of each argumentz
         func = $functions.get(BLFuncSignature.new(@name, nil, arg_types))
         
         # Setup a new scope for the function
