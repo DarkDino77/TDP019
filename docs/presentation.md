@@ -2,7 +2,7 @@
 - Blandning mellan C++ och python. C++: Strikt typat, svårt att bli fel. Python: Enkel syntax
 - Lätt att se om betygskriterierna uppfylls. 
 - Målgruppen är dem med liten tidigare erfarenhet av programmering.
-- Designöverväganden inkluderar Syntaxen: exempel på funktionsdefinition(ej returtyp!)
+- Designöverväganden inkluderar Syntaxen: exempel på funktionsdefinition(ej returtyp!)  
 
 ## översiktligt förklara hur ni implementerat ert språk, vilka delar, val av objekt- och datastruktur, algoritmer, verktyg ni använt
 - Ruby på samma sätt som diceroller. Klasser som representerar varje nod i AST (varje kosntruktion). Skapar instanser av dessa klasser när parsern fastställt typ.
@@ -28,7 +28,7 @@ class Node_assignment < Node
             raise "Variable with name #{@name} already exists"
         else
             if @value.get_type() != @type
-                raise TypeError, "Variable assignment for '#{@name}' expected a #{@type} value, but got a #{@value.get_type} value."
+                raise TypeError
             end
             @@variable_stack[@@current_scope][@name] = {"value" => @value.evaluate, "type" => @type, "const" => @const}
             return @value.evaluate
