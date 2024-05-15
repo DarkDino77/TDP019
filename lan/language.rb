@@ -62,6 +62,10 @@ class LanguageParser
                         elapsed_time = time2 - time1
                         puts "Evaluation time: \e[01m#{elapsed_time}\e[00m seconds"
                     end
+
+                    if return_value.is_a?(Node) 
+                        raise SyntaxError, "SyntaxError return can not be outside a function"
+                    end 
                     return_value
                 end
             end

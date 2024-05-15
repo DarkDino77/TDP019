@@ -768,6 +768,8 @@ class LanguageTest < Test::Unit::TestCase
 
 	def test_boolean_conversions_expressions
 		assert_equal(3, execute("if(to_b(505.5)){1+2;}"))
-
+	end
+	def test_free_return
+		assert_raise(SyntaxError) { execute("return 5;")}
 	end
 end
