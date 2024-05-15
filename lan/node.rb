@@ -1,27 +1,33 @@
 #!/usr/bin/env ruby
 
-# ---------------------------------------[Base]---------------------------------------
+# =============================================[Base]=============================================
+# Base class for all nodes in the abstract syntax tree
 class Node
+    # Class variables to keep track of variable and function scopes
     @@variable_stack = [{}]
     @@function_stack = [{}]
     @@current_scope = 0
     
+    # "Pure virtual" function to be implemented by subclasses
     def evaluate()
         raise NotImplementedError, "Must implement #{self.class}.evaluate"
     end
     
+    # Creates a new scope by pushing new hashes onto the stacks
     def new_scope
         @@variable_stack << {}
         @@function_stack << {}
         @@current_scope += 1
     end
     
+    # Closes the current scope by removing the last hashes from the stacks
     def close_scope
         @@variable_stack.pop()
         @@function_stack.pop()
         @@current_scope -= 1
     end
 
+    # Looks up a variable in the variable stack
     def look_up_var(name)
         stack_counter = @@variable_stack.size-1    
         @@variable_stack.reverse_each do |variables|
@@ -35,6 +41,7 @@ class Node
         raise "Variable with the name #{name} was not found in scope with variables: #{@@variable_stack[@@current_scope]}, all scopes: #{@@variable_stack}"
     end
 
+    # Looks up a function in the function stack
     def look_up_fun(name)
         stack_counter = @@function_stack.size-1    
         @@function_stack.reverse_each do |variables|
@@ -47,6 +54,7 @@ class Node
         raise "Function with the name #{name} was not found, function stack: #{@@function_stack[0-@@current_scope]}"
     end
     
+    # Helper function to determine if a value is true or false
     def true_or_false(value)
         if value == 0 || (value.is_a?(Array) && value.empty?()) || value == "" || value == 0.0 || value == false
             return false
@@ -54,6 +62,7 @@ class Node
         return true 
     end
 
+    # Helper function to create datatype nodes based on type (Used by arrays)
     def create_datatype_node(value, type)
         case type
         when "int"
@@ -68,15 +77,18 @@ class Node
     end
 end
 
+# Represents a list of statements
 class Node_statement_list < Node
     def initialize(statement, statement_list = nil)
         @statement = statement
         @statement_list = statement_list
     end
 
+    # Evaluates the statement list
     def evaluate()
         return_value = @statement.evaluate()
         
+        # Breaks if statement returns- or is a return node
         if @statement.is_a?(Node_return)
             return @statement
         elsif return_value.is_a?(Node_return)
@@ -91,11 +103,13 @@ class Node_statement_list < Node
     end
 end
 
+# Represents a standalone scope
 class Node_standalone_scope < Node
     def initialize(stmt)
         @stmt = stmt
     end
 
+    # Evaluates the body within a new scope
     def evaluate()
         new_scope()
         @stmt.evaluate
@@ -103,7 +117,8 @@ class Node_standalone_scope < Node
     end
 end
 
-# ---------------------------------------[Variables]---------------------------------------
+# =============================================[Variables]=============================================
+# Base class for datatype nodes
 class Node_datatype < Node
     def initialize()
         raise NotImplementedError, "Must implement #{self.class}.initialize"
@@ -118,6 +133,7 @@ class Node_datatype < Node
     end
 end
 
+# Represents an integer node
 class Node_int < Node_datatype
     attr_accessor :value, :type
     def initialize(value)
@@ -126,6 +142,7 @@ class Node_int < Node_datatype
     end
 end
 
+# Represents a float node
 class Node_float < Node_datatype
     attr_accessor :value, :type
     def initialize(value)
@@ -134,6 +151,7 @@ class Node_float < Node_datatype
     end
 end
 
+# Represents a character node
 class Node_char < Node_datatype
     attr_accessor :value, :type
     def initialize(value)
@@ -142,6 +160,7 @@ class Node_char < Node_datatype
     end
 end
 
+# Represents a bool node
 class Node_bool < Node_datatype
     attr_accessor :value, :type
   
@@ -150,6 +169,7 @@ class Node_bool < Node_datatype
         @type = "bool"
     end
   
+    # Helper function to convert a string value to a boolean
     def convert_to_boolean(value)
         case value.downcase
         when "true"
@@ -162,6 +182,7 @@ class Node_bool < Node_datatype
     end
 end
 
+# Represents a variable node
 class Node_variable < Node
     attr_accessor :name,:type
     def initialize(name)
@@ -169,6 +190,7 @@ class Node_variable < Node
         @type = nil
     end
 
+    # Returns the type of the variable, evaluates if type is nil
     def get_type()
         if @type == nil
             @type = look_up_var(@name)["type"]
@@ -176,11 +198,13 @@ class Node_variable < Node
         return @type
     end
     
+    # Evaluates the variable node
     def evaluate()
         return look_up_var(@name)["value"]
     end
 end
 
+# Represents an assignment node
 class Node_assignment < Node
     attr_accessor :value
     def initialize(type, name, value)
@@ -194,6 +218,7 @@ class Node_assignment < Node
         return @type
     end
 
+    # Evaluates the assignment node, makes sure that there's no variable with that name already in the scope and that the type is correct
     def evaluate()
         if @@variable_stack.any? { |hash| hash.value?(@name) }
             raise "Variable with name #{@name} already exists"
@@ -206,11 +231,13 @@ class Node_assignment < Node
         end
     end
     
+    # Removes the const property from the variable (If mod flag detected in parser)
     def remove_const()
         @const = false
     end
 end
 
+# Represents an auto assignment node
 class Node_auto_assignment < Node_assignment
     def initialize(name, value)
         @name = name
@@ -219,18 +246,21 @@ class Node_auto_assignment < Node_assignment
         @const = true
     end
 
+    # Evaluates the auto assignment node, updates the type based on the type of the value node
     def evaluate
         @type = @value.get_type
         super
     end
 end
 
+# Represents a re-assignment node
 class Node_re_assignment < Node
     def initialize(name, value)
         @name = name
         @value = value
     end
 
+    # Evaluates the re-assignment node, makes sure type is correct and variable is not constant
     def evaluate()
         stack_counter = @@variable_stack.size-1
         var = look_up_var(@name)
@@ -252,7 +282,8 @@ class Node_re_assignment < Node
     end
 end
 
-# ---------------------------------------[Arrays]---------------------------------------
+# =============================================[Arrays]=============================================
+# Represents an array node
 class Node_array < Node
     attr_accessor :values
     def initialize(type, values)
@@ -267,6 +298,7 @@ class Node_array < Node
         return @type
     end
 
+    # Evaluates the array node, makes sure elements are of correct type
     def evaluate()
         output = []
         @values.each do |m|
@@ -286,11 +318,13 @@ class Node_array < Node
         return output
     end
 
+    # Updates the type of the array
     def update_type(type)
         @type = type
     end
 end
 
+# Represents an array accessor node
 class Node_array_accessor < Node
     attr_accessor :name, :index
     def initialize(name, index)
@@ -306,6 +340,7 @@ class Node_array_accessor < Node
         return @type
     end
 
+    # Evaluates the array accessor node, returns the targeted element
     def evaluate()
         target_array = look_up_var(@name)
         return_value = "nil"
@@ -341,14 +376,14 @@ class Node_array_accessor < Node
     end
 end
 
-
-
+# Represents an array addition node
 class Node_array_add < Node
     def initialize(target_variable, var)
         @target_variable = target_variable
         @var = var
     end
 
+    # Evaluates the array addition node, ensures variable is an array, can be modified and the sent in value is of correct type
     def evaluate()
         target_array = look_up_var(@target_variable.name)
 
@@ -378,13 +413,14 @@ class Node_array_add < Node
     end
 end
 
-
+# Represents an array removal node
 class Node_array_remove < Node
     def initialize(target_variable, index = "nil")
         @target_variable = target_variable
         @index = index
     end
     
+    # Evaluates the array removal node, returns the element at the targeted index
     def evaluate()
         target_array = look_up_var(@target_variable.name)
         return_value = "nil"
@@ -412,6 +448,7 @@ class Node_array_remove < Node
         return  return_value
     end
 
+    # Helper function to remove an element at a specific index
     def remove_index(index)
         current_value = @target_variable.evaluate
         return_value = current_value[index]
@@ -421,13 +458,15 @@ class Node_array_remove < Node
     end
 end
 
-# ---------------------------------------[Control]---------------------------------------
+# =============================================[Control]=============================================
+# Represents an if statement node
 class Node_if < Node
     def initialize(expression, statement_list)
         @expression = expression
         @statement_list = statement_list
     end
     
+    # Evaluates the if statement, returns a return node if one of the statement produces one, else return nil
     def evaluate
         new_scope()
         if true_or_false(@expression.evaluate)
@@ -444,12 +483,14 @@ class Node_if < Node
     end
 end
 
+# Represents a while loop node
 class Node_while < Node
     def initialize(expression, statement_list)
         @expression = expression
         @statement_list = statement_list
     end
 
+    # Evaluates the while loop, returns a return node if one of the statement produces one, else return nil
     def evaluate
         new_scope()
         while true_or_false(@expression.evaluate) do
@@ -466,7 +507,8 @@ class Node_while < Node
     end
 end
 
-# ---------------------------------------[Functions]---------------------------------------
+# =============================================[Functions]=============================================
+# Represents a function definition node
 class Node_function < Node
     attr_accessor :name, :variable_list, :function_body, :type
     def initialize(name, variable_list, function_body, type = "nil")
@@ -476,6 +518,7 @@ class Node_function < Node
         @type = type
     end
 
+    # Evaluates the function definition, always returns nil
     def evaluate()
         @@function_stack[@@current_scope][@name] = self
 
@@ -483,6 +526,7 @@ class Node_function < Node
     end
 end
 
+# Represents a function call node
 class Node_function_call < Node
     attr_accessor :type, :cache
 
@@ -490,8 +534,7 @@ class Node_function_call < Node
         @name = name
         @variable_list = variable_list
         @type = "nil"
-        #For recusive speedups
-        @cache = {}
+        @cache = {} # Used to speed up recursive calls
     end
 
     def get_type()
@@ -501,12 +544,14 @@ class Node_function_call < Node
         return @type
     end
 
+    # Evaluates the function call, breaks and returns if a return node is evaluated
     def evaluate
         evaluated_arguments = @variable_list.map(&:evaluate)
 
+        # Create a unique key for caching the function call based on the function name and evaluated arguments
         arguments_key = evaluated_arguments.join("-")
         cache_key = "#{@name}-#{arguments_key}"
-        
+
         return @cache[cache_key] if @cache.has_key?(cache_key)
 
         fun = look_up_fun(@name)
@@ -516,6 +561,7 @@ class Node_function_call < Node
             raise "Wrong number of arguments, #{fun.name} expected #{fun.variable_list.size} arguments"
         end
 
+        # Validate the type of each argument against the expected type in the function definition
         @variable_list.each_with_index do |var, index|
             expected_type = fun.variable_list[index].get_type
             unless var.get_type == expected_type
@@ -549,24 +595,30 @@ class Node_function_call < Node
         return return_value
     end
 
+    # Sets the type of the function call
     def set_type(return_node)
         @type = return_node.get_type unless @type != "nil"
     end
 end
 
+# Represents a return statement node
 class Node_return < Node
     def initialize(expr)
         @expr = expr
     end
+
     def get_type()
         return @expr.get_type
     end
+
+    # Evaluates the return statement
     def evaluate()
         return @expr.evaluate
     end
 end
 
-# ---------------------------------------[Expressions]---------------------------------------
+# =============================================[Expressions]=============================================
+# Represents a general expression node
 class Node_expression < Node
     attr_accessor :operator, :lhs, :rhs, :type
     def initialize(lhs, operator, rhs)
@@ -576,6 +628,7 @@ class Node_expression < Node
         @type = "nil"
     end
 
+    # Returns the type, if one side is int while the other is float, convert the int side to float
     def get_type()
         lhs_type = @lhs.get_type
         rhs_type = @rhs.get_type
@@ -591,6 +644,7 @@ class Node_expression < Node
         end
     end
 
+    # Constructs an array of nodes for array operations
     def array_construction(element, type)
         element_arr_list = []
 
@@ -605,6 +659,7 @@ class Node_expression < Node
         return element_arr_list
     end
 
+    # Evaluates the expression
     def evaluate()
         lhs = @lhs.evaluate()
         rhs = @rhs.evaluate()
@@ -612,6 +667,7 @@ class Node_expression < Node
         lhs_type = @lhs.get_type
         rhs_type = @rhs.get_type
 
+        # Handle array operations
         if lhs_type.include?("array") and rhs_type.include?("array")
             if lhs.size != rhs.size
                 raise "Arithmetic operations between arrays with different sizes are not supported"
@@ -637,10 +693,12 @@ class Node_expression < Node
             return output_array
         end
         
+        # Don't allow char type in expressions
         if get_type === "char"
             raise TypeError, "The char type can not be used in expressions"
         end
 
+        # Handle type conversion and evaluation
         if lhs_type=="float" && rhs_type == "int"
             @rhs.type = "float"
             return lhs.send(@operator,rhs.to_f)
@@ -649,8 +707,8 @@ class Node_expression < Node
             @lhs.type = "float"
             return lhs.to_f.send(@operator,rhs)
 
-        elsif lhs_type == "bool" && rhs_type != "bool" # if(false == '')
-            return lhs.send(@operator,true_or_false(rhs)) # if('' == false)
+        elsif lhs_type == "bool" && rhs_type != "bool"
+            return lhs.send(@operator,true_or_false(rhs))
 
         elsif rhs_type == "bool" && lhs_type != "bool"
             return true_or_false(lhs).send(@operator,rhs)
@@ -668,6 +726,7 @@ class Node_expression < Node
     end
 end
 
+# Represents a logical expression node
 class Node_logical_expression < Node_expression
     attr_accessor :operator, :lhs, :rhs, :type
     def initialize(lhs, operator, rhs)
@@ -681,6 +740,7 @@ class Node_logical_expression < Node_expression
         return @type
     end
 
+    # Evaluates the logical expression
     def evaluate()
         lhs = @lhs.evaluate()
         rhs = @rhs.evaluate()
@@ -699,19 +759,21 @@ class Node_logical_expression < Node_expression
     end
 end
 
+# Represents a comparison expression node
 class Node_comparison_expression < Node_expression
     attr_accessor :operator, :lhs, :rhs, :type
     def initialize(lhs, operator, rhs)
         @lhs = lhs
         @operator = operator
         @rhs = rhs
-        @type = "bool"
+        @type = "bool" # Comparison expressions always evaluate to boolean
     end
 
     def get_type
         return @type
     end
 
+    # Evaluates the comparison expression
     def evaluate()
         lhs = @lhs.evaluate()
         rhs = @rhs.evaluate()
@@ -719,9 +781,11 @@ class Node_comparison_expression < Node_expression
         lhs_type = @lhs.get_type
         rhs_type = @rhs.get_type
 
+        # Handle comparisons involving arrays
         if (lhs_type.include?("array")||lhs_type == "nil") and (rhs_type.include?("array")||rhs_type == "nil")
             min = lhs.size >= rhs.size ? rhs.size : lhs.size
 
+            # Compare each element in the arrays
             for i in 1..min do
                 if lhs[i-1] != rhs[i-1]
                     if lhs[i-1].is_a?(Array) and rhs[i-1].is_a?(Array)
@@ -744,19 +808,24 @@ class Node_comparison_expression < Node_expression
     end
 end
 
+# Represents a logical NOT node
 class Node_not < Node
     def initialize(value)
         @value = value
         @type = "bool"
     end
+
     def get_type()
         return @type
     end
+
+    # Evaluates the NOT expression
     def evaluate()
         return !@value.evaluate
     end
 end
 
+# Represents a negative value node
 class Node_negative < Node
     def initialize(value)
         @value = value
@@ -766,30 +835,33 @@ class Node_negative < Node
         return @value.get_type
     end
 
+    # Evaluates the negative value expression
     def evaluate()
         return -@value.evaluate
     end
 end
 
-# ---------------------------------------[Conversions]---------------------------------------
-
+# =============================================[Conversions]=============================================
+# Represents a conversion to character node
 class Node_to_char < Node
-  def initialize(value)
-    @value = value
-  end
+    def initialize(value)
+        @value = value
+    end
 
-  def get_type()
-    return "char"
-  end
+    def get_type()
+        return "char"
+    end
 
-  def evaluate()
-    return_value = @value.evaluate
-    return_value = return_value.to_s[0]
+    # Evaluates the conversion to character
+    def evaluate()
+        return_value = @value.evaluate
+        return_value = return_value.to_s[0]
 
-    return return_value
-  end
+        return return_value
+    end
 end
 
+# Represents a conversion to integer node
 class Node_to_int < Node
     def initialize(value)
       @value = value
@@ -799,6 +871,7 @@ class Node_to_int < Node
         return "int"
     end
 
+    # Evaluates the conversion to integer
     def evaluate()
         case @value.get_type
         in "float"
@@ -815,6 +888,7 @@ class Node_to_int < Node
     end
 end
 
+# Represents a conversion to float node
 class Node_to_float < Node
     def initialize(value)
         @value = value
@@ -824,6 +898,7 @@ class Node_to_float < Node
         return "float"
     end
     
+    # Evaluates the conversion to float
     def evaluate()
         case @value.get_type
         in "float"
@@ -839,7 +914,8 @@ class Node_to_float < Node
         end
     end
 end
-  
+
+# Represents a conversion to boolean node
 class Node_to_bool < Node
     def initialize(value)
       @value = value
@@ -849,6 +925,7 @@ class Node_to_bool < Node
         return "bool"
     end
 
+    # Evaluates the conversion to boolean using the true_or_false helper function
     def evaluate()
         if true_or_false(@value.evaluate)
             return true
@@ -858,6 +935,7 @@ class Node_to_bool < Node
     end
 end
 
+# Represents a conversion to array node
 class Node_to_array < Node
     def initialize(value)
       @value = value
@@ -872,6 +950,7 @@ class Node_to_array < Node
         return @type
     end
     
+    # Evaluates the conversion to array 
     def evaluate()
         @value = Node_array.new("nil", [@value])
         @type = @value.get_type 
@@ -880,8 +959,8 @@ class Node_to_array < Node
     end
 end
 
-# ---------------------------------------[Print]---------------------------------------
-
+# =============================================[Print]=============================================
+# Represents a print statement node
 class Node_print < Node
     def initialize(exp)
         @exp = exp

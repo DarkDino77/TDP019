@@ -1,21 +1,24 @@
 #!/usr/bin/env ruby
+
 require './language.rb'
 
 $l = LanguageParser.new()
 $parse_times = []
 $slowest_code = ""
 
+# Function to check if the input string indicates termination
 def done(str)
     ["quit","exit","bye","done",""].include?(str.chomp)
 end
 
+# Function to read and parse code from a file
 def read_file(filename)
     file = IO.readlines(filename, chomp: true)
     file = file.join(" ")
-
     parse_code(file)
 end
 
+# Function to parse code and measure the parse time if debugging is enabled
 def parse_code(data)
     time1 = Time.now
     return_value = $l.language_parser.parse(data)
@@ -31,6 +34,7 @@ def parse_code(data)
     return return_value
 end
 
+# Function to execute the given code, parse it, and output debugging information if enabled
 def execute(data)
     if done(data)
         pass
@@ -54,6 +58,7 @@ def log(state = false)
     end
 end
 
+# Function to read and parse code from the user input in a loop
 def read_code
     ARGV.clear
     print "[Graphite] "
@@ -66,6 +71,7 @@ def read_code
     end
 end
 
+# Run Graphite based on command-line arguments
 input_array = ARGV
 
 if input_array.size == 1
